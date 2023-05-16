@@ -65,7 +65,7 @@ class Gun():
         self.GAME_OBJECTS = game_objects
         self.gunType = gunType
 
-    def fire(self, ship, spread: float = 0.5) -> Vector:
+    def fire(self, ship, spread: float = 0.5, focal: float = 256) -> Vector:
         if (self.fireCooldown > 0): return
         self.flip = not(self.flip)
         self.fireCooldown = COOLDOWNS[self.gunType]
@@ -76,10 +76,12 @@ class Gun():
             if self.flip:
                 offset *= -1
 
+            direction: Vector = (ship.pos + ship.direction * focal - (ship.pos + offset)).normalize()
+
             pr = Projectile(ship.screen, self.GAME_OBJECTS,
                             parentCollider=ship,
                             pos=ship.pos + offset,
-                            direction=ship.direction,
+                            direction=direction,
                             gunType=self.gunType)
             rotation: float = random.random() - 0.5
             rotation *= 0

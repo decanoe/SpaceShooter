@@ -55,7 +55,6 @@ EnemyShip(screen, GAME_OBJECTS)
 
 while process:
     deltaTime: float = clock.tick() / 1000.
-    # deltaTime /= 8
     update()
     runner.UpdateAllPhysics(GAME_OBJECTS, deltaTime)
     runner.UpdateAllGraphics(GAME_OBJECTS)

@@ -39,14 +39,14 @@ class Ship(Collider, runner.Object):
         self.damage_Effects = pygame.Surface((SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE), flags=pygame.SRCALPHA)
         self.damage_Effects.fill((0, 0, 0, 0))
 
-        self.damageSprite(Vector(0, 0), 32)
-        self.damageSprite(Vector(48, 48), 32)
+        # self.damageSprite(Vector(0, 0), 32)
+        # self.damageSprite(Vector(48, 48), 32)
 
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
-        if (self.timeSinceWallHit() >= 0.5):
+        if (self.timeSinceWallHit() >= 0.4):
             if (direction == None):
                 direction = self.direction
-            self.velocity += direction * force * self.mass * deltaTime
+            self.velocity += direction * force * (1 + self.mass) * deltaTime * 35
 
     def propulseForce(self, direction) -> float:
         f: float = 2 + 4 * abs(self.direction.dot(direction))

@@ -55,7 +55,7 @@ class Collider:
         if (self.lastWallHit < 32):
             self.lastWallHit += deltaTime
         
-        self.pos += self.velocity * deltaTime * 100 / (1 + self.mass)
+        self.pos += self.velocity * deltaTime / (1 + self.mass)
 
         self.last_frame_velocity = self.velocity
 

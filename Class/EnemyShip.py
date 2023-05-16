@@ -2,7 +2,7 @@ from Class.Vector import Vector
 from Class.Collider import Collider
 import Class.ObjectRunner as runner
 from Class.Gun import Gun, COOLDOWNS
-from Class.Projectile import Projectile
+from Class.Projectile import Projectile, SPEED
 from Class.Debris import Debris
 import pygame
 import math
@@ -15,7 +15,7 @@ class EnemyShip(Collider, runner.Object):
 
     gun: Gun = None
     propulseCooldown: float = 0
-    GAME_OBJECTS: list[runner.Object] = None
+    GAME_OBJECTS: list[runner.Object | Collider] = None
     lives: int = 1024
     parts: dict[str, tuple[int, int]] = {"ship" : (0, 0),
                    "wings" : (0, 64),
@@ -51,7 +51,7 @@ class EnemyShip(Collider, runner.Object):
 
     def propulse(self):
         if (self.timeSinceWallHit() >= 0.5 and self.propulseCooldown <= 0):
-            self.velocity = self.direction * (1 + self.mass) * 1.25
+            self.velocity = self.direction * (1 + self.mass) * 125
             self.propulseCooldown = 1
 
     def getHitbox(self) -> pygame.Rect :
@@ -122,22 +122,26 @@ class EnemyShip(Collider, runner.Object):
         self.mask = pygame.mask.from_surface(
             pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
     def updatePhysics(self, deltaTime: float) -> bool:
-        self.angle_velocity = max(min(self.angle_velocity, math.pi), -math.pi)
         self.velocity /= 1 + deltaTime * 0.5
+        
+        target_pos: Vector = self.GAME_OBJECTS[0].pos
+        bulletSpeed = SPEED[self.gun.gunType]
+        timeToReach = Vector.distance(self.pos, target_pos) / bulletSpeed
+        target_pos += self.GAME_OBJECTS[0].velocity / (1 + self.GAME_OBJECTS[0].mass) * timeToReach * (1 + deltaTime)
+        # pygame.draw.line(self.screen, (255, 0, 0), self.GAME_OBJECTS[0].centerOnPos(self.pos).toTuple(), self.GAME_OBJECTS[0].centerOnPos(target_pos).toTuple())
+
+        direction: Vector = target_pos - self.pos
+
+        angle = self.direction.getAngle(direction)
+        self.angle_velocity = max(min(angle * 500, math.pi), -math.pi)
+        
 
         Collider.updatePhysics(self, deltaTime)
         self.updateMask()
-        
-        target_pos: Vector = self.GAME_OBJECTS[0].pos
-        direction: Vector = target_pos - self.pos
-        directHit: bool = True
 
-        angle = self.direction.getAngle(direction)
-        self.angle_velocity = angle * 500
-        
         self.gun.reload(deltaTime)
-        if (directHit and abs(angle) < 0.1):
-            self.gun.fire(self)
+        if (timeToReach < 3 and abs(angle) < 0.01):
+            self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))
 
         if (self.propulseCooldown > 0):
             self.propulseCooldown -= deltaTime

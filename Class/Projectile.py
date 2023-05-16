@@ -6,18 +6,18 @@ import pygame
 import math
 
 SPEED: dict[str, float] = {
-    "sparkle" : 5,
-    "red sparkle" : 5,
-    "rocket": 3,
-    "red rocket": 3,
-    "small cannon": 3.5,
-    "red small cannon": 3.5,
-    "sparkle (ennemy)" : 4,
-    "red sparkle (ennemy)" : 4,
-    "small cannon (ennemy)": 3.5,
-    "red small cannon (ennemy)": 3.5,
-    "rocket (ennemy)": 3,
-    "red rocket (ennemy)": 3
+    "sparkle" : 500,
+    "red sparkle" : 500,
+    "rocket": 300,
+    "red rocket": 300,
+    "small cannon": 350,
+    "red small cannon": 350,
+    "sparkle (ennemy)" : 400,
+    "red sparkle (ennemy)" : 400,
+    "small cannon (ennemy)": 350,
+    "red small cannon (ennemy)": 350,
+    "rocket (ennemy)": 300,
+    "red rocket (ennemy)": 300
     }
 SPRITE: dict[str, tuple[int, int]] = {
     "sparkle" : (24, 12),
@@ -73,7 +73,8 @@ class Projectile(Collider, runner.Object):
         super().__init__(direction, pos)
         self.mass = 0.1
         self.radius = 1
-        self.setVelocity(direction * SPEED[gunType])
+        self.setVelocity(direction * SPEED[gunType] * (1 + self.mass))
+        self.velocity += parentCollider.velocity / (1 + parentCollider.mass) * (1 + self.mass)
         
         self.gunType = gunType
         self.updateMask()
