@@ -29,7 +29,7 @@ class EnemyShip(Collider, runner.Object):
 
         if (pos == None):
             pos = World.center_object.pos
-            pos += Vector.AngleToVector(random.random() * math.pi * 2) * (runner.LOAD_RADIUS - 1) * runner.REGION_SIZE
+            pos += Vector.AngleToVector(random.random() * math.pi * 2) * runner.LOAD_RADIUS * runner.REGION_SIZE
         
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
@@ -130,6 +130,7 @@ class EnemyShip(Collider, runner.Object):
         
         target_pos: Vector = self.World.center_object.pos
         dist = Vector.distance(self.pos, target_pos)
+        direction: Vector = target_pos - self.pos
         self.gun.reload(deltaTime)
 
         if dist < self.screen.get_height() * 0.75:
@@ -137,8 +138,6 @@ class EnemyShip(Collider, runner.Object):
             timeToReach = dist / bulletSpeed
             target_pos += self.World.center_object.velocity / (1 + self.World.center_object.mass) * timeToReach * (1 + deltaTime)
             # pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
-
-            direction: Vector = target_pos - self.pos
 
             angle = self.direction.getAngle(direction)
             self.angle_velocity = max(min(angle * 500, math.pi), -math.pi)
@@ -150,6 +149,17 @@ class EnemyShip(Collider, runner.Object):
                 self.propulseCooldown -= deltaTime
             if Vector.distance(self.pos, target_pos) > 128:
                 self.propulse()
+        else:
+            line = (self.World.centerPositionTo(target_pos).toTuple(), self.World.centerPositionTo(self.pos).toTuple())
+            self.screen.get_rect().clipline(line)
+
+            angle = direction.getAngle(Vector(0, 1))
+            overlay = runner.SPRITE_LIB.subsurface((13*32, 4 * 32), (32, 32))
+            overlay = pygame.transform.scale(overlay, (80, 80))
+            overlay = pygame.transform.rotate(overlay, math.degrees(angle))
+            overlay.fill((255, 150, 10), special_flags=pygame.BLEND_RGBA_MULT)
+            rect = overlay.get_rect(center = self.World.centerPositionTo(target_pos - direction.normalized() * 64).toTuple())
+            self.screen.blit(overlay, rect)
 
         if (self.mask == None):
             return True
