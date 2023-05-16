@@ -29,7 +29,7 @@ class Ship(Collider, runner.Object):
         self.mass = 2
         
         self.gun = Gun(World)
-        self.gun.gunType = "small cannon"
+        self.gun.gunType = "rocket"
         self.gun.mouseAim = True
         self.resetSprite()
 
@@ -46,7 +46,7 @@ class Ship(Collider, runner.Object):
         if (self.timeSinceWallHit() >= 0.4):
             if (direction == None):
                 direction = self.direction
-            self.velocity += direction * force * (1 + self.mass) * deltaTime * 35
+            self.velocity += direction * force * (1 + self.mass) * deltaTime * 45
 
     def propulseForce(self, direction) -> float:
         f: float = 2 + 4 * abs(self.direction.dot(direction))
@@ -176,12 +176,13 @@ class Ship(Collider, runner.Object):
     def debug_update(self):
         pygame.draw.rect(self.screen, (0, 255, 0), self.getHitbox(), width=2)
         self.debugDirection()
+    
     def updateMask(self):
         rotatedImage: pygame.Surface = pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1))))
         self.mask = pygame.mask.from_surface(rotatedImage)
     def updatePhysics(self, deltaTime: float) -> bool:
         self.angle_velocity = max(min(self.angle_velocity, math.pi), -math.pi)
-        self.velocity /= 1 + deltaTime * 0.5
+        self.velocity /= 1 + deltaTime * 0.75
         
         Collider.updatePhysics(self, deltaTime)
         self.updateMask()

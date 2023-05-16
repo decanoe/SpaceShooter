@@ -118,35 +118,38 @@ class EnemyShip(Collider, runner.Object):
 
         self.blitImage(self.sprite)
         self.gun.update(self)
+    
     def updateMask(self):
         self.mask = pygame.mask.from_surface(
             pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
     def updatePhysics(self, deltaTime: float) -> bool:
         self.velocity /= 1 + deltaTime * 0.5
-        
-        target_pos: Vector = self.World.center_object.pos
-        bulletSpeed = SPEED[self.gun.gunType]
-        timeToReach = Vector.distance(self.pos, target_pos) / bulletSpeed
-        target_pos += self.World.center_object.velocity / (1 + self.World.center_object.mass) * timeToReach * (1 + deltaTime)
-        # pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
-
-        direction: Vector = target_pos - self.pos
-
-        angle = self.direction.getAngle(direction)
-        self.angle_velocity = max(min(angle * 500, math.pi), -math.pi)
-        
 
         Collider.updatePhysics(self, deltaTime)
         self.updateMask()
-
+        
+        target_pos: Vector = self.World.center_object.pos
+        dist = Vector.distance(self.pos, target_pos)
         self.gun.reload(deltaTime)
-        if (timeToReach < 3 and abs(angle) < 0.01):
-            self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))
 
-        if (self.propulseCooldown > 0):
-            self.propulseCooldown -= deltaTime
-        if Vector.distance(self.pos, target_pos) > 128:
-            self.propulse()
+        if dist < self.screen.get_height() * 0.75:
+            bulletSpeed = SPEED[self.gun.gunType]
+            timeToReach = dist / bulletSpeed
+            target_pos += self.World.center_object.velocity / (1 + self.World.center_object.mass) * timeToReach * (1 + deltaTime)
+            # pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
+
+            direction: Vector = target_pos - self.pos
+
+            angle = self.direction.getAngle(direction)
+            self.angle_velocity = max(min(angle * 500, math.pi), -math.pi)
+        
+            if (timeToReach < 3 and abs(angle) < 0.01):
+                self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))
+
+            if (self.propulseCooldown > 0):
+                self.propulseCooldown -= deltaTime
+            if Vector.distance(self.pos, target_pos) > 128:
+                self.propulse()
 
         if (self.mask == None):
             return True

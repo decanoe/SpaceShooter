@@ -20,7 +20,7 @@ clock = pygame.time.Clock()
 size = width, height = 1024, 768
 INNER_PART_SIZE = 0.4
 
-stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), 1 - random.random() ** 2) for i in range(128)]
+stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), 1 - random.random() * random.random()) for i in range(128)]
 
 def update():
     screen.fill((0, 0, 0))

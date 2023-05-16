@@ -34,10 +34,10 @@ SPRITE: dict[str, tuple[int, int]] = {
     "red rocket (ennemy)": (24, 17)
     }
 STRENGTH: dict[str, int] = {
-    "sparkle" : 3,
-    "red sparkle" : 3,
-    "small cannon": 25,
-    "red small cannon": 5,
+    "sparkle" : 6,
+    "red sparkle" : 6,
+    "small cannon": 15,
+    "red small cannon": 15,
     "rocket": 20,
     "red rocket": 20,
     "sparkle (ennemy)" : 3,

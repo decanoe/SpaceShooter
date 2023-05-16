@@ -8,12 +8,12 @@ import random
 SPRITE_SIZE = 64
 
 COOLDOWNS: dict = {
-    "sparkle" : 0.5,
-    "red sparkle" : 0.5,
+    "sparkle" : 0.25,
+    "red sparkle" : 0.25,
     "small cannon": 1,
     "red small cannon": 1,
-    "rocket": 2,
-    "red rocket": 2,
+    "rocket": 1,
+    "red rocket": 1,
     "sparkle (ennemy)" : 1,
     "red sparkle (ennemy)" : 1,
     "small cannon (ennemy)": 2,
