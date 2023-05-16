@@ -55,7 +55,7 @@ class Projectile(Collider, runner.Object):
 
     ally: bool = False
     alive: float = 1
-    GAME_OBJECTS: list[runner.Object] = None
+    World: runner.World
     parentCollider: Collider = None
     gunType: str = ""
     timeBirth: int = 0
@@ -63,12 +63,10 @@ class Projectile(Collider, runner.Object):
 
     # =============================================
 
-    def __init__(self, screen : pygame.Surface, game_objects: list, parentCollider: Collider, pos : Vector, direction : Vector, gunType: str = "small cannon (ennemy)") -> None:
-        self.GAME_OBJECTS = game_objects
-        self.GAME_OBJECTS.append(self)
+    def __init__(self, screen : pygame.Surface, World: runner.World, parentCollider: Collider, pos : Vector, direction : Vector, gunType: str = "small cannon (ennemy)") -> None:
         self.parentCollider = parentCollider
-        
         self.screen = screen
+        self.persistantData = False
 
         super().__init__(direction, pos)
         self.mass = 0.1
@@ -80,6 +78,9 @@ class Projectile(Collider, runner.Object):
         self.updateMask()
 
         self.explodeStrength = STRENGTH[self.gunType]
+        
+        self.World = World
+        self.World.AddObject(self)
 
     def getHitbox(self) -> pygame.Rect :
         rect = pygame.Rect(
@@ -106,7 +107,8 @@ class Projectile(Collider, runner.Object):
     def blitImage(self, image: pygame.Surface):
         rotatedImage: pygame.Surface = pygame.transform.scale(image.copy(), (PROJECTILE_SIZE, PROJECTILE_SIZE))
         rotatedImage = pygame.transform.rotate(rotatedImage, math.degrees(self.direction.getAngle(Vector(0, -1))))
-        rect: pygame.Rect = rotatedImage.get_rect(center = self.GAME_OBJECTS[0].centerOnPos(self.pos).toTuple())
+        rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
+
         rotatedImage.set_alpha(int(255 * self.alive))
         self.screen.blit(rotatedImage, rect)
     def update(self):

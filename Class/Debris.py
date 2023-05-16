@@ -13,26 +13,29 @@ class Debris(Collider, runner.Object):
 
     alive: float = 0
     sprite: pygame.Surface = None
-    GAME_OBJECTS: list[runner.Object]
+    World: runner.World
 
     # =============================================
 
-    def __init__(self, screen : pygame.Surface, game_objects: list[runner.Object], pos: Vector, direction: Vector, area: pygame.Rect = pygame.Rect(0, 0, 1, 1)) -> None:
-        game_objects.append(self)
-        self.GAME_OBJECTS = game_objects
+    def __init__(self, screen : pygame.Surface, World: runner.World, pos: Vector, direction: Vector, area: pygame.Rect = pygame.Rect(0, 0, 1, 1)) -> None:
         self.alive = runner.DEBRIS_LIFE
         
         self.screen = screen
+        self.persistantData = False
+        self.clearLagData = True
 
         super().__init__(direction, pos)
         self.mass = 0.25
-        self.setVelocity(Vector.AngleToVector(random.random() * math.pi * 2) * self.mass * 5)
+        self.setVelocity(Vector.AngleToVector(random.random() * math.pi * 2) * self.mass * 500)
         self.direction = Vector.AngleToVector(random.random() * math.pi * 2)
         self.angle_velocity = (random.random() - 0.5) * 2
         self.pos += self.velocity / 10
 
         self.sprite = runner.SPRITE_LIB.subsurface(area)
         self.mask = pygame.mask.from_surface(self.sprite)
+        
+        World.AddObject(self)
+        self.World = World
 
     def getHitbox(self) -> pygame.Rect :
         return self.sprite.get_rect()
@@ -48,7 +51,7 @@ class Debris(Collider, runner.Object):
     def blitImage(self, image: pygame.Surface):
         rotatedImage: pygame.Surface = pygame.transform.rotozoom(image, math.degrees(self.direction.getAngle(Vector(0, -1))), SHIP_SQUARE_SIZE / 48)
         rotatedImage.set_alpha(int(255 * min(1, self.alive / 10)))
-        rect: pygame.Rect = rotatedImage.get_rect(center = self.GAME_OBJECTS[0].centerOnPos(self.pos).toTuple())
+        rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
     def updateMask(self):
         self.mask = pygame.mask.from_surface(

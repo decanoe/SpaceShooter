@@ -54,15 +54,15 @@ class Gun():
     # =============================================
 
     fireCooldown: float = 0
-    GAME_OBJECTS: list[runner.Object] = None
+    World: runner.World
     gunType: str = "small cannon"
     flip: bool = False
     mouseAim: bool = False
 
     # =============================================
 
-    def __init__(self, game_objects: list[runner.Object], gunType: str = "small cannon") -> None:
-        self.GAME_OBJECTS = game_objects
+    def __init__(self, World: runner.World, gunType: str = "small cannon") -> None:
+        self.World = World
         self.gunType = gunType
 
     def fire(self, ship, spread: float = 0.5, focal: float = 256) -> Vector:
@@ -78,7 +78,7 @@ class Gun():
 
             direction: Vector = (ship.pos + ship.direction * focal - (ship.pos + offset)).normalize()
 
-            pr = Projectile(ship.screen, self.GAME_OBJECTS,
+            pr = Projectile(ship.screen, self.World,
                             parentCollider=ship,
                             pos=ship.pos + offset,
                             direction=direction,
@@ -105,5 +105,5 @@ class Gun():
         image = pygame.transform.flip(image, self.flip, False)
         image: pygame.Surface = pygame.transform.scale(image, (SPRITE_SIZE, SPRITE_SIZE))
         image: pygame.Surface = pygame.transform.rotate(image, math.degrees(ship.direction.getAngle(Vector(0, -1))))
-        rect: pygame.Rect = image.get_rect(center = self.GAME_OBJECTS[0].centerOnPos(ship.pos).toTuple())
+        rect: pygame.Rect = image.get_rect(center = self.World.centerPositionTo(ship.pos).toTuple())
         ship.screen.blit(image, rect)

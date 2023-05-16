@@ -9,7 +9,6 @@ from Class.Vector import Vector
 from Class.Wall import Wall
 from Class.EnemyShip import EnemyShip
 from Class.Ship import Ship
-from Class.Mine import Mine
 import Class.ObjectRunner as runner
 import random
 import math
@@ -27,10 +26,26 @@ def update():
     screen.fill((0, 0, 0))
 
     for i in range(len(stars)):
-        x: int = int(stars[i][0] - GAME_OBJECTS[0].pos.x * stars[i][2]) % width
-        y: int = int(stars[i][1] - GAME_OBJECTS[0].pos.y * stars[i][2]) % height
+        x: int = int(stars[i][0] - WORLD.center_object.pos.x * stars[i][2]) % width
+        y: int = int(stars[i][1] - WORLD.center_object.pos.y * stars[i][2]) % height
 
         pygame.draw.line(screen, (255, 255, 255), (x, y), (x, y))
+    
+    region = WORLD.getRegion(WORLD.center_object.pos)
+    for x_ in range(-runner.LOAD_RADIUS // 2, runner.LOAD_RADIUS // 2 + 1):
+        for y in range(-runner.LOAD_RADIUS, runner.LOAD_RADIUS + 1):
+            x = x_ * 2 + (y - region[1] + region[0])%2
+
+            color = (0, 255, 255)
+            if abs(x) == runner.LOAD_RADIUS or abs(y) == runner.LOAD_RADIUS:
+                color = (0, 0, 255)
+
+            pos = Vector(x + region[0] - 0.5, y + region[1] - 0.5) * runner.REGION_SIZE
+            pygame.draw.rect(
+                screen,
+                color,
+                pygame.Rect(WORLD.centerPositionTo(pos).toTuple(), (runner.REGION_SIZE, runner.REGION_SIZE)),
+                1)
     
     # s = pygame.Surface(size)
     # s.set_alpha(1)
@@ -46,18 +61,18 @@ screen: pygame.Surface = pygame.display.set_mode(size)
 pygame.display.set_caption('OmegaRace2')
 process: bool = True
 
-GAME_OBJECTS: list[runner.Object] = []
-ship: Ship = Ship(screen, GAME_OBJECTS, Vector(width * (1 - INNER_PART_SIZE) / 4, height / 2))
-EnemyShip(screen, GAME_OBJECTS)
-EnemyShip(screen, GAME_OBJECTS)
-EnemyShip(screen, GAME_OBJECTS)
-EnemyShip(screen, GAME_OBJECTS)
+WORLD: runner.World = runner.World()
+ship: Ship = Ship(screen, WORLD, Vector(0, 0))
+EnemyShip(screen, WORLD)
+EnemyShip(screen, WORLD)
+EnemyShip(screen, WORLD)
+EnemyShip(screen, WORLD)
 
 while process:
     deltaTime: float = clock.tick() / 1000.
     update()
-    runner.UpdateAllPhysics(GAME_OBJECTS, deltaTime)
-    runner.UpdateAllGraphics(GAME_OBJECTS)
+    WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
+    WORLD.UpdateAllGraphics()
 
     Render_Text(str(int(clock.get_fps())), (255,0,0), (0,0))
 

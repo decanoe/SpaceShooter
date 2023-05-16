@@ -15,7 +15,7 @@ class EnemyShip(Collider, runner.Object):
 
     gun: Gun = None
     propulseCooldown: float = 0
-    GAME_OBJECTS: list[runner.Object | Collider] = None
+    World: runner.World
     lives: int = 1024
     parts: dict[str, tuple[int, int]] = {"ship" : (0, 0),
                    "wings" : (0, 64),
@@ -24,20 +24,17 @@ class EnemyShip(Collider, runner.Object):
 
     # =============================================
 
-    def __init__(self, screen : pygame.Surface, game_objects: list[runner.Object], pos: Vector = None) -> None:
-        self.GAME_OBJECTS = game_objects
-        self.GAME_OBJECTS.append(self)
-        
+    def __init__(self, screen : pygame.Surface, World: runner.World, pos: Vector = None) -> None:
         self.screen = screen
 
         if (pos == None):
-            pos = game_objects[0].pos
-            pos += Vector.AngleToVector(random.random() * math.pi * 2) * 768
+            pos = World.center_object.pos
+            pos += Vector.AngleToVector(random.random() * math.pi * 2) * (runner.LOAD_RADIUS - 1) * runner.REGION_SIZE
         
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(game_objects)
+        self.gun = Gun(World)
 
         self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
         self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
@@ -48,6 +45,9 @@ class EnemyShip(Collider, runner.Object):
             self.gun.gunType += " (ennemy)"
         
         self.resetSprite()
+        
+        self.World = World
+        self.World.AddObject(self)
 
     def propulse(self):
         if (self.timeSinceWallHit() >= 0.5 and self.propulseCooldown <= 0):
@@ -66,9 +66,9 @@ class EnemyShip(Collider, runner.Object):
             mask = pygame.mask.from_surface(runner.SPRITE_LIB.subsurface(self.parts[key], (32, 32)), 254)
             
             for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.GAME_OBJECTS, self.pos, self.direction, rect.move(self.parts[key]))
+                Debris(self.screen, self.World, self.pos, self.direction, rect.move(self.parts[key]))
         
-        EnemyShip(self.screen, self.GAME_OBJECTS)
+        EnemyShip(self.screen, self.World)
     def onCollide(self, collider: Collider, point: Vector):
         if type(collider) != Debris:
             super().onCollide(collider, point)
@@ -89,7 +89,7 @@ class EnemyShip(Collider, runner.Object):
             if (self.mask.count() <= 1024):
                 self.explode()
     def dieFromRange(self):
-        EnemyShip(self.screen, self.GAME_OBJECTS)
+        EnemyShip(self.screen, self.World)
 
     def resetSprite(self):
         self.sprite = runner.SPRITE_LIB.subsurface(self.parts["wings"], (32, 32)).copy()
@@ -109,7 +109,7 @@ class EnemyShip(Collider, runner.Object):
         self.updateMask()
     def blitImage(self, image: pygame.Surface):
         rotatedImage: pygame.Surface = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
-        rect: pygame.Rect = rotatedImage.get_rect(center = self.GAME_OBJECTS[0].centerOnPos(self.pos).toTuple())
+        rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
     def update(self):
         
@@ -124,11 +124,11 @@ class EnemyShip(Collider, runner.Object):
     def updatePhysics(self, deltaTime: float) -> bool:
         self.velocity /= 1 + deltaTime * 0.5
         
-        target_pos: Vector = self.GAME_OBJECTS[0].pos
+        target_pos: Vector = self.World.center_object.pos
         bulletSpeed = SPEED[self.gun.gunType]
         timeToReach = Vector.distance(self.pos, target_pos) / bulletSpeed
-        target_pos += self.GAME_OBJECTS[0].velocity / (1 + self.GAME_OBJECTS[0].mass) * timeToReach * (1 + deltaTime)
-        # pygame.draw.line(self.screen, (255, 0, 0), self.GAME_OBJECTS[0].centerOnPos(self.pos).toTuple(), self.GAME_OBJECTS[0].centerOnPos(target_pos).toTuple())
+        target_pos += self.World.center_object.velocity / (1 + self.World.center_object.mass) * timeToReach * (1 + deltaTime)
+        # pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
 
         direction: Vector = target_pos - self.pos
 

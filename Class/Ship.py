@@ -12,7 +12,7 @@ SHIP_SQUARE_SIZE = 64
 class Ship(Collider, runner.Object):
     # =============================================
 
-    GAME_OBJECTS: list[runner.Object] = None
+    World: runner.World
     gun: Gun = None
     parts: dict[str, tuple[int, int]] = {"ship" : (0, 0),
                    "wings" : (3*32, 64),
@@ -22,16 +22,13 @@ class Ship(Collider, runner.Object):
 
     # =============================================
 
-    def __init__(self, screen : pygame.Surface, game_objects: list[runner.Object], pos : Vector) -> None:
-        self.GAME_OBJECTS = game_objects
-        self.GAME_OBJECTS.append(self)
-        
+    def __init__(self, screen : pygame.Surface, World: runner.World, pos : Vector) -> None:
         self.screen = screen
 
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(game_objects)
+        self.gun = Gun(World)
         self.gun.gunType = "small cannon"
         self.gun.mouseAim = True
         self.resetSprite()
@@ -41,6 +38,9 @@ class Ship(Collider, runner.Object):
 
         # self.damageSprite(Vector(0, 0), 32)
         # self.damageSprite(Vector(48, 48), 32)
+        
+        self.World = World
+        self.World.AddObject(self)
 
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
         if (self.timeSinceWallHit() >= 0.4):
@@ -120,7 +120,7 @@ class Ship(Collider, runner.Object):
             mask = pygame.mask.from_surface(runner.SPRITE_LIB.subsurface(self.parts[key], (32, 32)), 254)
             
             for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.GAME_OBJECTS, self.pos, self.direction, rect.move(self.parts[key]))
+                Debris(self.screen, self.World, self.pos, self.direction, rect.move(self.parts[key]))
     
     def repair(self, amount: float, deltaTime: float):
         cutout: pygame.Mask = pygame.mask.from_surface(self.sprite, 215)
@@ -166,7 +166,7 @@ class Ship(Collider, runner.Object):
     def blitImage(self, image: pygame.Surface):
         rotatedImage: pygame.Surface = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
         # rect: pygame.Rect = rotatedImage.get_rect(center = self.pos.toTuple())
-        rect: pygame.Rect = rotatedImage.get_rect(center = self.GAME_OBJECTS[0].centerOnPos(self.pos).toTuple())
+        rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
         # self.screen.blit(self.mask.to_surface(), rect)
     def update(self):
