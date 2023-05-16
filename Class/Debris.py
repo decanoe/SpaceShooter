@@ -11,7 +11,7 @@ SHIP_SQUARE_SIZE = 64
 class Debris(Collider, runner.Object):
     # =============================================
 
-    alive: float = 25
+    alive: float = 0
     sprite: pygame.Surface = None
     GAME_OBJECTS: list[runner.Object]
 
@@ -20,6 +20,7 @@ class Debris(Collider, runner.Object):
     def __init__(self, screen : pygame.Surface, game_objects: list[runner.Object], pos: Vector, direction: Vector, area: pygame.Rect = pygame.Rect(0, 0, 1, 1)) -> None:
         game_objects.append(self)
         self.GAME_OBJECTS = game_objects
+        self.alive = runner.DEBRIS_LIFE
         
         self.screen = screen
 

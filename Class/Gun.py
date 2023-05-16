@@ -61,11 +61,11 @@ class Gun():
 
     # =============================================
 
-    def __init__(self, game_objects: list, gunType: str = "small cannon") -> None:
+    def __init__(self, game_objects: list[runner.Object], gunType: str = "small cannon") -> None:
         self.GAME_OBJECTS = game_objects
         self.gunType = gunType
 
-    def fire(self, ship) -> Vector:
+    def fire(self, ship, spread: float = 0.5) -> Vector:
         if (self.fireCooldown > 0): return
         self.flip = not(self.flip)
         self.fireCooldown = COOLDOWNS[self.gunType]
@@ -76,19 +76,14 @@ class Gun():
             if self.flip:
                 offset *= -1
 
-            direction : Vector = ship.direction
-            if self.mouseAim:
-                direction = Vector.TupleToPos(pygame.mouse.get_pos()) - (ship.pos + offset)
-                direction.normalize()
-            
             pr = Projectile(ship.screen, self.GAME_OBJECTS,
                             parentCollider=ship,
                             pos=ship.pos + offset,
-                            direction=direction,
+                            direction=ship.direction,
                             gunType=self.gunType)
             rotation: float = random.random() - 0.5
             rotation *= 0
-            pr.velocity = pr.velocity.rotate(rotation * rotation * 0.5)
+            pr.velocity = pr.velocity.rotate(rotation * rotation * spread)
             pr.velocity += ship.velocity / ship.mass * pr.mass
             
             ship.velocity -= pr.velocity * pr.mass / ship.mass

@@ -21,7 +21,7 @@ clock = pygame.time.Clock()
 size = width, height = 1024, 768
 INNER_PART_SIZE = 0.4
 
-stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), random.random()) for i in range(128)]
+stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), 1 - random.random() ** 2) for i in range(128)]
 
 def update():
     screen.fill((0, 0, 0))
@@ -48,6 +48,8 @@ process: bool = True
 
 GAME_OBJECTS: list[runner.Object] = []
 ship: Ship = Ship(screen, GAME_OBJECTS, Vector(width * (1 - INNER_PART_SIZE) / 4, height / 2))
+EnemyShip(screen, GAME_OBJECTS)
+EnemyShip(screen, GAME_OBJECTS)
 EnemyShip(screen, GAME_OBJECTS)
 EnemyShip(screen, GAME_OBJECTS)
 

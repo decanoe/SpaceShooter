@@ -3,6 +3,8 @@ from Class.Vector import Vector
 import pygame
 
 SPRITE_LIB = pygame.image.load("./Sprites/Ship - parts.png")
+DEBRIS_LIFE: int = 25
+KILLING_RANGE_SQUARED: int = 1536 * 1536
 
 class Object:
     pos: Vector
@@ -21,6 +23,7 @@ class Object:
 def UpdateColliding(game_objects: list[Object|Collider]):
     for i in range(len(game_objects)):
         c1 = game_objects[i]
+
         if not(issubclass(type(c1), Collider)): continue
 
         for c2 in game_objects[i + 1:]:
@@ -43,13 +46,14 @@ def UpdateAllPhysics(game_objects: list[Object], deltaTime: float):
     UpdateColliding(game_objects)
     i = 0
     while i < len(game_objects):
+    
         if not(game_objects[i].updatePhysics(deltaTime)):
             game_objects.pop(i)
-        elif Vector.sqrDistance(game_objects[i].pos, game_objects[0].pos) > 1536*1536:
+        elif Vector.sqrDistance(game_objects[i].pos, game_objects[0].pos) > KILLING_RANGE_SQUARED:
             game_objects[i].dieFromRange()
             game_objects.pop(i)
         else:
             i += 1
-def UpdateAllGraphics(game_objects: list):
+def UpdateAllGraphics(game_objects: list[Object]):
     for o in game_objects:
         o.update()

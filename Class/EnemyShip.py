@@ -123,6 +123,7 @@ class EnemyShip(Collider, runner.Object):
             pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
     def updatePhysics(self, deltaTime: float) -> bool:
         self.angle_velocity = max(min(self.angle_velocity, math.pi), -math.pi)
+        self.velocity /= 1 + deltaTime * 0.5
 
         Collider.updatePhysics(self, deltaTime)
         self.updateMask()
@@ -140,7 +141,8 @@ class EnemyShip(Collider, runner.Object):
 
         if (self.propulseCooldown > 0):
             self.propulseCooldown -= deltaTime
-        self.propulse()
+        if Vector.distance(self.pos, target_pos) > 128:
+            self.propulse()
 
         if (self.mask == None):
             return True
