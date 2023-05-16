@@ -18,6 +18,7 @@ class Ship(Collider, runner.Object):
                    "wings" : (3*32, 64),
                    "engine" : (0, 128)}
     sprite: pygame.Surface = None
+    damage_Effects: pygame.Surface = None
 
     # =============================================
 
@@ -35,15 +36,24 @@ class Ship(Collider, runner.Object):
         self.gun.mouseAim = True
         self.resetSprite()
 
+        self.damage_Effects = pygame.Surface((SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE), flags=pygame.SRCALPHA)
+        self.damage_Effects.fill((0, 0, 0, 0))
+
         self.damageSprite(Vector(0, 0), 32)
         self.damageSprite(Vector(48, 48), 32)
 
-    def propulse(self, force: float = 2, direction: Vector = None):
+    def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
         if (self.timeSinceWallHit() >= 0.5):
             if (direction == None):
                 direction = self.direction
-            self.velocity = direction * force * (1 + self.mass)
+            self.velocity += direction * force * self.mass * deltaTime
 
+    def propulseForce(self, direction) -> float:
+        f: float = 2 + 4 * abs(self.direction.dot(direction))
+        if (self.direction.dot(direction) > -0.25):
+            return f
+        else:
+            return f / 2
     def eventReactions(self, events: list[pygame.event.Event], deltaTime: float):
         self.gun.reload(deltaTime)
 
@@ -70,15 +80,17 @@ class Ship(Collider, runner.Object):
             self.repair(5, deltaTime)
 
         if pygame.mouse.get_pressed()[0]:
-            self.propulse()
+            self.propulse(deltaTime)
         if pygame.mouse.get_pressed()[2]:
             self.gun.fire(self, spread=0)
         if keys_pressed[pygame.K_z] or keys_pressed[pygame.K_UP]:
-            self.propulse()
+            self.propulse(deltaTime, force = self.propulseForce(Vector(0, -1)), direction = Vector(0, -1))
+        if keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
+            self.propulse(deltaTime, force = self.propulseForce(Vector(0, 1)), direction = Vector(0, 1))
         if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]:
-            self.propulse(direction = self.direction.normal())
+            self.propulse(deltaTime, force = self.propulseForce(Vector(1, 0)), direction = Vector(1, 0))
         if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_q]:
-            self.propulse(direction = self.direction.normal() * -1)
+            self.propulse(deltaTime, force = self.propulseForce(Vector(-1, 0)), direction = Vector(-1, 0))
     def onCollide(self, collider: Collider, point: Vector):
         t = self.lastWallHit
 
@@ -118,6 +130,10 @@ class Ship(Collider, runner.Object):
         cutout.draw(cutoutBase, (1, 0))
         cutout.draw(cutoutBase, (0, 1))
 
+        newEffect: pygame.Surface = cutout.to_surface(setcolor=(0, 255, 150, 255), unsetcolor=(0, 0, 0, 0))
+        newEffect.blit(cutoutBase.to_surface(setcolor=(0, 0, 0, 0), unsetcolor=(255, 255, 255, 255)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        self.damage_Effects.blit(newEffect, (0, 0))
+
         base = runner.SPRITE_LIB.subsurface(self.parts["wings"], (32, 32)).copy()
         base.blit(runner.SPRITE_LIB.subsurface(self.parts["engine"], (32, 32)), (0, 0))
         base.blit(runner.SPRITE_LIB.subsurface(self.parts["ship"], (32, 32)), (0, 0))
@@ -127,6 +143,10 @@ class Ship(Collider, runner.Object):
 
         self.sprite.blit(base, (0, 0))# = cutout.to_surface(unsetcolor=(0, 0, 0, 0))
         self.updateMask()
+
+        cutout = pygame.mask.from_surface(self.sprite, 215).to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
+        self.damage_Effects.blit(cutout, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+
     def resetSprite(self):
         self.sprite = runner.SPRITE_LIB.subsurface(self.parts["wings"], (32, 32)).copy()
         self.sprite.blit(runner.SPRITE_LIB.subsurface(self.parts["engine"], (32, 32)), (0, 0))
@@ -150,9 +170,8 @@ class Ship(Collider, runner.Object):
         self.screen.blit(rotatedImage, rect)
         # self.screen.blit(self.mask.to_surface(), rect)
     def update(self):
-        # rect = self.mask.get_rect(center=self.centerOnPos(self.pos).toTuple())
-        # self.screen.blit(self.mask.to_surface(setcolor=(255, 0, 0), unsetcolor=(0, 0, 0, 0)), rect)
         self.blitImage(self.sprite)
+        self.blitImage(self.damage_Effects)
         self.gun.update(self)
     def debug_update(self):
         pygame.draw.rect(self.screen, (0, 255, 0), self.getHitbox(), width=2)
@@ -166,6 +185,8 @@ class Ship(Collider, runner.Object):
         
         Collider.updatePhysics(self, deltaTime)
         self.updateMask()
+        
+        self.damage_Effects.fill((0, 0, 0, 255 * deltaTime), special_flags=pygame.BLEND_RGBA_SUB)
         
         mouse_pos = Vector.TupleToPos(pygame.mouse.get_pos())
         mouse_pos -= Vector.TupleToPos(self.screen.get_rect().size) / 2
