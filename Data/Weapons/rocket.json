@@ -1,0 +1,19 @@
+{
+    "cooldown": 1,
+    "barrel_offset": [11],
+
+    "animation_position": [0, 8],
+    "animation_length": 5,
+    "animation_start": 0,
+    "animation_end": 1,
+
+    "projectile":
+    {
+        "speed": 3,
+        "strength": 15,
+
+        "animation_position": [24, 14],
+        "animation_length": 1,
+        "animation_speed": 0
+    }
+}
