@@ -1,8 +1,8 @@
 from Class.Vector import Vector
 from Class.Collider import Collider
 import Class.ObjectRunner as runner
-from Class.Gun import Gun, COOLDOWNS
-from Class.Projectile import Projectile, SPEED
+from Class.Gun import Gun
+from Class.Projectile import Projectile
 from Class.Debris import Debris
 import pygame
 import math
@@ -40,9 +40,7 @@ class EnemyShip(Collider, runner.Object):
         self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
         self.parts["engine"] = (random.randint(0, 10) * 32, random.randint(4, 5) * 32)
 
-        self.gun.gunType = random.choice(list(COOLDOWNS.keys()))
-        if not(self.gun.gunType.endswith(" (ennemy)")):
-            self.gun.gunType += " (ennemy)"
+        self.gun.gunType = random.choice(["sparkle", "red sparkle", "small cannon", "red small cannon", "rocket", "red rocket"]) + " (ennemy)"
         
         self.resetSprite()
         
@@ -134,8 +132,7 @@ class EnemyShip(Collider, runner.Object):
         self.gun.reload(deltaTime)
 
         if dist < self.screen.get_height() * 0.75:
-            bulletSpeed = SPEED[self.gun.gunType]
-            timeToReach = dist / bulletSpeed
+            timeToReach = dist / (self.gun.projectile_speed * 100)
             target_pos += self.World.center_object.velocity / (1 + self.World.center_object.mass) * timeToReach * (1 + deltaTime)
             # pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
 

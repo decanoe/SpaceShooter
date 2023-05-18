@@ -1,7 +1,7 @@
 from Class.Vector import Vector
 from Class.Collider import Collider
 import Class.ObjectRunner as runner
-from Class.Gun import Gun, COOLDOWNS
+from Class.Gun import Gun
 from Class.Debris import Debris
 import pygame
 import math
@@ -63,10 +63,8 @@ class Ship(Collider, runner.Object):
                     self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
                     self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
                     self.parts["engine"] = (random.randint(0, 10) * 32, random.randint(4, 5) * 32)
-                    self.gun.gunType = random.choice(list(COOLDOWNS.keys()))
+                    self.gun.gunType = random.choice(["sparkle", "red sparkle", "small cannon", "red small cannon", "rocket", "red rocket"])
                     self.resetSprite()
-                    if self.gun.gunType.endswith(" (ennemy)"):
-                        self.gun.gunType = self.gun.gunType[:-9]
                     self.gun.fireCooldown = 0
                 if event.key == pygame.K_KP_9:
                     self.explode()
@@ -192,6 +190,6 @@ class Ship(Collider, runner.Object):
         mouse_pos = Vector.TupleToPos(pygame.mouse.get_pos())
         mouse_pos -= Vector.TupleToPos(self.screen.get_rect().size) / 2
         angle = self.direction.getAngle(mouse_pos)
-        self.angle_velocity = angle * 500
+        self.angle_velocity = angle * 5
         
         return True
