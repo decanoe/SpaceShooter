@@ -79,8 +79,8 @@ class Projectile(Collider, runner.Object):
         super().__init__(direction, pos)
         self.mass = 0.1
         self.radius = 1
-        self.setVelocity(direction * speed * (1 + self.mass) * 100)
-        self.velocity += parentCollider.velocity / (1 + parentCollider.mass) * (1 + self.mass)
+        self.setVelocity(direction * speed * self.mass * 100)
+        # self.velocity += parentCollider.velocity / parentCollider.mass * self.mass
 
         self.updateMask()
         

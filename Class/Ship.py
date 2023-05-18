@@ -63,7 +63,8 @@ class Ship(Collider, runner.Object):
                     self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
                     self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
                     self.parts["engine"] = (random.randint(0, 10) * 32, random.randint(4, 5) * 32)
-                    self.gun.gunType = random.choice(["sparkle", "red sparkle", "small cannon", "red small cannon", "rocket", "red rocket"])
+                    self.gun.gunType = random.choice(["sparkle", "small cannon", "rocket"])
+                    self.gun.getInfo()
                     self.resetSprite()
                     self.gun.fireCooldown = 0
                 if event.key == pygame.K_KP_9:
@@ -75,7 +76,7 @@ class Ship(Collider, runner.Object):
         keys_pressed = pygame.key.get_pressed()
 
         if keys_pressed[pygame.K_r]:
-            self.repair(5, deltaTime)
+            self.repair(25, deltaTime)
 
         if pygame.mouse.get_pressed()[0]:
             self.propulse(deltaTime)

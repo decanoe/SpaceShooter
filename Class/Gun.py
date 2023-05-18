@@ -75,7 +75,6 @@ class Gun():
     def __init__(self, World: runner.World, gunType: str = "small cannon") -> None:
         self.World = World
         self.gunType = gunType
-        self.gunType = 'test'
         self.getInfo()
 
     def getInfo(self):
@@ -115,7 +114,7 @@ class Gun():
 
         for value in self.barrel_offset:
             offset: Vector = ship.direction.normal().normalize()
-            offset *= value
+            offset *= value * SPRITE_SIZE / 32
             if self.flip:
                 offset *= -1
 

@@ -34,14 +34,12 @@ class EnemyShip(Collider, runner.Object):
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(World)
+        self.gun = Gun(World, random.choice(["sparkle", "small cannon", "rocket"]))
 
         self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
         self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
         self.parts["engine"] = (random.randint(0, 10) * 32, random.randint(4, 5) * 32)
 
-        self.gun.gunType = random.choice(["sparkle", "red sparkle", "small cannon", "red small cannon", "rocket", "red rocket"]) + " (ennemy)"
-        
         self.resetSprite()
         
         self.World = World
@@ -133,13 +131,13 @@ class EnemyShip(Collider, runner.Object):
 
         if dist < self.screen.get_height() * 0.75:
             timeToReach = dist / (self.gun.projectile_speed * 100)
-            target_pos += self.World.center_object.velocity / (1 + self.World.center_object.mass) * timeToReach * (1 + deltaTime)
-            # pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
+            target_pos += self.World.center_object.velocity / self.World.center_object.mass * timeToReach * (1 + deltaTime)
+            pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
 
-            angle = self.direction.getAngle(direction)
-            self.angle_velocity = max(min(angle * 500, math.pi), -math.pi)
+            angle = self.direction.getAngle(target_pos - self.pos)
+            self.angle_velocity = max(min(angle * 50, math.pi), -math.pi)
         
-            if (timeToReach < 3 and abs(angle) < 0.01):
+            if (timeToReach < 3 and abs(angle) < .1):
                 self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))
 
             if (self.propulseCooldown > 0):
