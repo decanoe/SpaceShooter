@@ -1,4 +1,4 @@
-from Class.Collider import Collider
+from Class.InGame.Collider import Collider
 from Class.Vector import Vector
 import pygame
 

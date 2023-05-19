@@ -1,7 +1,7 @@
 from Class.Vector import Vector
-from Class.Collider import Collider
-import Class.ObjectRunner as runner
-from Class.Projectile import Projectile
+from Class.InGame.Collider import Collider
+import Class.InGame.ObjectRunner as runner
+from Class.InGame.Projectile import Projectile
 import pygame
 import math
 import random

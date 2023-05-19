@@ -1,6 +1,6 @@
 from Class.Vector import Vector
-from Class.Projectile import Projectile
-import Class.ObjectRunner as runner
+from Class.InGame.Projectile import Projectile
+import Class.InGame.ObjectRunner as runner
 import pygame, math, random, json
 
 SPRITE_SIZE = 64

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from Class.Vector import Vector
-from Class.Collider import Collider
-import Class.ObjectRunner as runner
+from Class.InGame.Collider import Collider
+import Class.InGame.ObjectRunner as runner
 import pygame
 import math
 

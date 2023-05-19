@@ -6,10 +6,9 @@ os.chdir(dir_path)
 
 import pygame
 from Class.Vector import Vector
-from Class.Wall import Wall
-from Class.EnemyShip import EnemyShip
-from Class.Ship import Ship
-import Class.ObjectRunner as runner
+from Class.InGame.EnemyShip import EnemyShip
+from Class.InGame.Ship import Ship
+import Class.InGame.ObjectRunner as runner
 import random
 import math
 
