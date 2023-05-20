@@ -2,7 +2,9 @@
     "cooldown": 1,
     "barrel_offset": [11],
 
-    "animation_position": [0, 8],
+    "animation_position_color1": [0, 6],
+    "animation_position_color2": [0, 8],
+    "animation_position_NoneColor": [0, 7],
     "animation_length": 5,
     "animation_start": 0,
     "animation_end": 1,
@@ -12,8 +14,9 @@
         "speed": 3,
         "strength": 15,
 
-        "animation_position": [24, 14],
-        "animation_length": 1,
-        "animation_speed": 0
+        "animation_position_color1": [20, 12],
+        "animation_position_NoneColor": [20, 13],
+        "animation_length": 4,
+        "animation_speed": 16
     }
 }

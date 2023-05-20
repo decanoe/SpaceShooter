@@ -3,9 +3,9 @@ from Class.InGame.Collider import Collider
 import Class.InGame.ObjectRunner as runner
 from Class.InGame.Gun import Gun
 from Class.InGame.Debris import Debris
-from Functions.ImageModifier import loadSprite
+from Functions.ImageModifier import loadSprite, random_hsl
 
-import pygame, math, random, json
+import pygame, math, random, json, os
 
 SHIP_SQUARE_SIZE = 64
 
@@ -30,6 +30,7 @@ class Ship(Collider, runner.Object):
         
         self.gun = Gun(World, parts["weapon"], colors=(parts["weapon_color1"], parts["weapon_color2"]))
         self.gun.mouseAim = True
+
         self.resetSprite()
 
         self.damage_Effects = pygame.Surface((SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE), flags=pygame.SRCALPHA)
@@ -40,7 +41,24 @@ class Ship(Collider, runner.Object):
         
         self.World = World
         self.World.AddObject(self)
-    
+    def randomize(self):
+        self.parts["cockpit"] = random.choice(os.listdir("./Data/Cockpit/")).split('.')[0]
+        self.parts["cockpit_color1"] = random_hsl(maxs=100, maxl=10)
+        self.parts["cockpit_color2"] = random_hsl(maxs=100, maxl=25)
+
+        self.parts["wings"] = random.choice(os.listdir("./Data/Wings/")).split('.')[0]
+        self.parts["wings_color1"] = random_hsl(maxs=100, maxl=10)
+        self.parts["wings_color2"] = random_hsl(maxs=100, maxl=25)
+        
+        self.parts["engine"] = random.choice(os.listdir("./Data/Engines/")).split('.')[0]
+        self.parts["engine_color1"] = random_hsl(maxs=100, maxl=10)
+        self.parts["engine_color2"] = random_hsl(maxs=100, maxl=25)
+        
+        self.gun.gunType = random.choice(os.listdir("./Data/Weapons/")).split('.')[0]
+        self.gun.getInfo(colors = (random_hsl(maxs=100, maxl=10), random_hsl(maxs=255, maxl=25)))
+        self.resetSprite()
+        self.gun.fireCooldown = 0
+
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
         if (self.timeSinceWallHit() >= 0.4):
             if (direction == None):
@@ -59,13 +77,7 @@ class Ship(Collider, runner.Object):
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_KP_5:
-                    self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
-                    self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
-                    self.parts["engine"] = (random.randint(0, 10) * 32, random.randint(4, 5) * 32)
-                    self.gun.gunType = random.choice(["sparkle", "small cannon", "rocket"])
-                    self.gun.getInfo()
-                    self.resetSprite()
-                    self.gun.fireCooldown = 0
+                    self.randomize()
                 if event.key == pygame.K_KP_9:
                     self.explode()
             if event.type == pygame.MOUSEBUTTONDOWN:                                      #Use mouse button
@@ -133,7 +145,7 @@ class Ship(Collider, runner.Object):
         self.damage_Effects.blit(newEffect, (0, 0))
         
         base = self.base_sprite.copy()
-        base.blit(cutout.to_surface(setcolor=(255, 255, 255, 255 * deltaTime * amount), unsetcolor=(0, 0, 0, 0)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        base.blit(cutout.to_surface(setcolor=(255, 255, 255, min(255, 255 * deltaTime * amount)), unsetcolor=(0, 0, 0, 0)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         self.sprite.blit(base, (0, 0))# = cutout.to_surface(unsetcolor=(0, 0, 0, 0))
         self.updateMask()
@@ -169,10 +181,11 @@ class Ship(Collider, runner.Object):
         self.base_sprite = pygame.transform.scale(self.base_sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
         self.sprite = self.base_sprite.copy()
     def damageSprite(self, point: Vector, strength: int):
+        strength /= 2
         pygame.draw.circle(self.sprite, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 50), point.toTuple(), strength)
         cutout: pygame.Surface = pygame.mask.from_surface(self.sprite, 215).to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
 
-        edgeSprite: pygame.Surface = runner.SPRITE_LIB.subsurface((12*32, 4 * 32), (32, 32))
+        edgeSprite: pygame.Surface = runner.SPRITE_LIB.subsurface((12*32, 0), (32, 32))
         edgeSprite = pygame.transform.rotozoom(edgeSprite, random.random() * 360 * 0, float(strength) / 11)
         rect: pygame.Rect = edgeSprite.get_rect(center = point.toTuple())
         self.sprite.blit(edgeSprite, rect)

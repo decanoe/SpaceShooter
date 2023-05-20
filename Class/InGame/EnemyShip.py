@@ -1,12 +1,10 @@
+from Functions.ImageModifier import loadSprite
 from Class.Vector import Vector
 from Class.InGame.Collider import Collider
 import Class.InGame.ObjectRunner as runner
 from Class.InGame.Gun import Gun
-from Class.InGame.Projectile import Projectile
 from Class.InGame.Debris import Debris
-import pygame
-import math
-import random
+import pygame, math, random, json, os
 
 SHIP_SQUARE_SIZE = 64
 
@@ -17,10 +15,9 @@ class EnemyShip(Collider, runner.Object):
     propulseCooldown: float = 0
     World: runner.World
     lives: int = 1024
-    parts: dict[str, tuple[int, int]] = {"ship" : (0, 0),
-                   "wings" : (0, 64),
-                   "engine" : (0, 128)}
-    sprite: pygame.Surface = None
+    parts: dict
+    sprite: pygame.Surface
+    base_sprite: pygame.Surface
 
     # =============================================
 
@@ -34,11 +31,14 @@ class EnemyShip(Collider, runner.Object):
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(World, "sparkle")#random.choice(["sparkle", "small cannon", "rocket"]))
+        gtype = random.choice(os.listdir("./Data/Weapons")).split('.')[0]
+        self.gun = Gun(World, gtype)
 
-        self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
-        self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
-        self.parts["engine"] = (random.randint(0, 10) * 32, random.randint(4, 5) * 32)
+        self.parts = {
+            "cockpit": random.choice(os.listdir("./Data/Cockpit")).split('.')[0],
+            "wings": random.choice(os.listdir("./Data/Wings")).split('.')[0],
+            "engine": random.choice(os.listdir("./Data/Engines")).split('.')[0]
+        }
 
         self.resetSprite()
         
@@ -58,18 +58,19 @@ class EnemyShip(Collider, runner.Object):
             30)
         return rect
     def explode(self):
+        EnemyShip(self.screen, self.World)
+        return
         for key in ["wings", "engine", "ship"]:
             mask = pygame.mask.from_surface(runner.SPRITE_LIB.subsurface(self.parts[key], (32, 32)), 254)
             
             for rect in mask.get_bounding_rects():
                 Debris(self.screen, self.World, self.pos, self.direction, rect.move(self.parts[key]))
         
-        EnemyShip(self.screen, self.World)
     def onCollide(self, collider: Collider, point: Vector):
         if type(collider) != Debris:
             super().onCollide(collider, point)
 
-        if (type(collider) == Projectile):
+        if (type(collider).__name__ == "Projectile"):
             # self.lives -= 1
             # if (self.lives <= 0):
             #     self.explode()
@@ -88,15 +89,37 @@ class EnemyShip(Collider, runner.Object):
         EnemyShip(self.screen, self.World)
 
     def resetSprite(self):
-        self.sprite = runner.SPRITE_LIB.subsurface(self.parts["wings"], (32, 32)).copy()
-        self.sprite.blit(runner.SPRITE_LIB.subsurface(self.parts["engine"], (32, 32)), (0, 0))
-        self.sprite.blit(runner.SPRITE_LIB.subsurface(self.parts["ship"], (32, 32)), (0, 0))
-        self.sprite = pygame.transform.scale(self.sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+        self.base_sprite = loadSprite(
+            json.load(open("./Data/Wings/" + self.parts["wings"] + ".json", 'r')),
+            runner.SPRITE_LIB,
+            gridSize = 32,
+            color1 = self.parts.get("wings_color1", (0, 0, 0)),
+            color2 = self.parts.get("wings_color2", (0, 0, 0))
+        )
+
+        self.base_sprite.blit(loadSprite(
+            json.load(open("./Data/Engines/" + self.parts["engine"] + ".json", 'r')),
+            runner.SPRITE_LIB,
+            gridSize = 32,
+            color1 = self.parts.get("engine_color1", (0, 0, 0)),
+            color2 = self.parts.get("engine_color2", (0, 0, 0))
+        ), (0, 0))
+
+        self.base_sprite.blit(loadSprite(
+            json.load(open("./Data/Cockpit/" + self.parts["cockpit"] + ".json", 'r')),
+            runner.SPRITE_LIB,
+            gridSize = 32,
+            color1 = self.parts.get("cockpit_color1", (0, 0, 0)),
+            color2 = self.parts.get("cockpit_color2", (0, 0, 0))
+        ), (0, 0))
+        
+        self.base_sprite = pygame.transform.scale(self.base_sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+        self.sprite = self.base_sprite.copy()
     def damageSprite(self, point: Vector, strength: int):
         pygame.draw.circle(self.sprite, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 50), point.toTuple(), strength)
         cutout: pygame.Surface = pygame.mask.from_surface(self.sprite, 215).to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
 
-        edgeSprite: pygame.Surface = runner.SPRITE_LIB.subsurface((12*32, 4 * 32), (32, 32))
+        edgeSprite: pygame.Surface = runner.SPRITE_LIB.subsurface((12*32, 0), (32, 32))
         edgeSprite = pygame.transform.rotozoom(edgeSprite, random.random() * 360 * 0, float(strength) / 11)
         rect: pygame.Rect = edgeSprite.get_rect(center = point.toTuple())
         self.sprite.blit(edgeSprite, rect)
@@ -137,7 +160,7 @@ class EnemyShip(Collider, runner.Object):
             angle = self.direction.getAngle(target_pos - self.pos)
             self.angle_velocity = max(min(angle * 50, math.pi), -math.pi)
         
-            if (timeToReach < 3 and abs(angle) < .1):
+            if (timeToReach < 3 and abs(angle) < .025):
                 self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))
 
             if (self.propulseCooldown > 0):
@@ -149,7 +172,7 @@ class EnemyShip(Collider, runner.Object):
             self.screen.get_rect().clipline(line)
 
             angle = direction.getAngle(Vector(0, 1))
-            overlay = runner.SPRITE_LIB.subsurface((13*32, 4 * 32), (32, 32))
+            overlay = runner.SPRITE_LIB.subsurface((13*32, 0), (32, 32))
             overlay = pygame.transform.scale(overlay, (80, 80))
             overlay = pygame.transform.rotate(overlay, math.degrees(angle))
             overlay.fill((255, 150, 10), special_flags=pygame.BLEND_RGBA_MULT)

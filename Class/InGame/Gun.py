@@ -110,5 +110,3 @@ class Gun():
         image: pygame.Surface = pygame.transform.rotate(image, math.degrees(ship.direction.getAngle(Vector(0, -1))))
         rect: pygame.Rect = image.get_rect(center = self.World.centerPositionTo(ship.pos).toTuple())
         ship.screen.blit(image, rect)
-
-        ship.screen.blit(self.projectile_sprites, (0, 0))

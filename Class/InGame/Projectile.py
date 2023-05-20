@@ -7,49 +7,6 @@ import math
 
 PROJECTILE_SIZE = 32
 
-# SPEED: dict[str, float] = {
-#     "sparkle" : 500,
-#     "red sparkle" : 500,
-#     "rocket": 300,
-#     "red rocket": 300,
-#     "small cannon": 350,
-#     "red small cannon": 350,
-#     "sparkle (ennemy)" : 400,
-#     "red sparkle (ennemy)" : 400,
-#     "small cannon (ennemy)": 350,
-#     "red small cannon (ennemy)": 350,
-#     "rocket (ennemy)": 300,
-#     "red rocket (ennemy)": 300
-#     }
-# SPRITE: dict[str, tuple[int, int]] = {
-#     "sparkle" : (24, 12),
-#     "red sparkle" : (24, 13),
-#     "small cannon": (24, 14),
-#     "red small cannon": (24, 15),
-#     "rocket": (24, 16),
-#     "red rocket": (24, 17),
-#     "sparkle (ennemy)" : (24, 12),
-#     "red sparkle (ennemy)" : (24, 13),
-#     "small cannon (ennemy)": (24, 14),
-#     "red small cannon (ennemy)": (24, 15),
-#     "rocket (ennemy)": (24, 16),
-#     "red rocket (ennemy)": (24, 17)
-#     }
-# STRENGTH: dict[str, int] = {
-#     "sparkle" : 6,
-#     "red sparkle" : 6,
-#     "small cannon": 15,
-#     "red small cannon": 15,
-#     "rocket": 20,
-#     "red rocket": 20,
-#     "sparkle (ennemy)" : 3,
-#     "red sparkle (ennemy)" : 3,
-#     "small cannon (ennemy)": 5,
-#     "red small cannon (ennemy)": 5,
-#     "rocket (ennemy)": 10,
-#     "red rocket (ennemy)": 10
-#     }
-
 class Projectile(Collider, runner.Object):
     # =============================================
 

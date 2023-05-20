@@ -1,5 +1,7 @@
-import pygame
+import pygame, random
 
+def random_hsl(maxh: int = 359, maxs: int = 100, maxl: int = 100):
+    return (random.randint(0, maxh), random.randint(-maxs, maxs), random.randint(-maxl, maxl))
 def shift_hsl(img: pygame.Surface, hOffset: int = 0, sOffset: int = 0, lOffset: int = 0):
     pixels = pygame.PixelArray(img)
     for x in range(img.get_width()):
@@ -8,8 +10,8 @@ def shift_hsl(img: pygame.Surface, hOffset: int = 0, sOffset: int = 0, lOffset: 
             h, s, l, a = color.hsla
             color.hsla = (
                 int(h + hOffset) % 360,
-                int(s + hOffset) % 100,
-                int(l + hOffset) % 100,
+                min(100, max(0, int(s + sOffset))),
+                min(100, max(0, int(l + lOffset))),
                 int(a))
             pixels[x][y] = color
     del pixels

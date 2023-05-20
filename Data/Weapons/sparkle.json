@@ -13,7 +13,7 @@
         "speed": 5,
         "strength": 6,
 
-        "animation_position_color1": [20, 8],
+        "animation_position_color2": [20, 8],
         "animation_length": 1,
         "animation_speed": 0
     }
