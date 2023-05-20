@@ -43,19 +43,19 @@ class Ship(Collider, runner.Object):
         self.World.AddObject(self)
     def randomize(self):
         self.parts["cockpit"] = random.choice(os.listdir("./Data/Cockpit/")).split('.')[0]
-        self.parts["cockpit_color1"] = random_hsl(maxs=100, maxl=10)
-        self.parts["cockpit_color2"] = random_hsl(maxs=100, maxl=25)
+        self.parts["cockpit_color1"] = random_hsl(maxs=50, maxl=5)
+        self.parts["cockpit_color2"] = random_hsl(maxs=75, maxl=5)
 
         self.parts["wings"] = random.choice(os.listdir("./Data/Wings/")).split('.')[0]
-        self.parts["wings_color1"] = random_hsl(maxs=100, maxl=10)
-        self.parts["wings_color2"] = random_hsl(maxs=100, maxl=25)
+        self.parts["wings_color1"] = random_hsl(maxs=50, maxl=5)
+        self.parts["wings_color2"] = random_hsl(maxs=75, maxl=5)
         
         self.parts["engine"] = random.choice(os.listdir("./Data/Engines/")).split('.')[0]
-        self.parts["engine_color1"] = random_hsl(maxs=100, maxl=10)
-        self.parts["engine_color2"] = random_hsl(maxs=100, maxl=25)
+        self.parts["engine_color1"] = random_hsl(maxs=50, maxl=5)
+        self.parts["engine_color2"] = random_hsl(maxs=75, maxl=5)
         
         self.gun.gunType = random.choice(os.listdir("./Data/Weapons/")).split('.')[0]
-        self.gun.getInfo(colors = (random_hsl(maxs=100, maxl=10), random_hsl(maxs=255, maxl=25)))
+        self.gun.getInfo(colors = (random_hsl(maxs=50, maxl=5), random_hsl(maxs=75, maxl=5)))
         self.resetSprite()
         self.gun.fireCooldown = 0
 

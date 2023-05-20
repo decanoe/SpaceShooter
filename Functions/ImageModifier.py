@@ -1,7 +1,7 @@
 import pygame, random
 
-def random_hsl(maxh: int = 359, maxs: int = 100, maxl: int = 100):
-    return (random.randint(0, maxh), random.randint(-maxs, maxs), random.randint(-maxl, maxl))
+def random_hsl(maxh: int = 359, maxs: int = 50, maxl: int = 100):
+    return (random.randint(0, maxh), random.randint(0, maxs), random.randint(-maxl, maxl))
 def shift_hsl(img: pygame.Surface, hOffset: int = 0, sOffset: int = 0, lOffset: int = 0):
     pixels = pygame.PixelArray(img)
     for x in range(img.get_width()):

@@ -10,8 +10,7 @@ from Class.Vector import Vector
 from Class.InGame.EnemyShip import EnemyShip
 from Class.InGame.Ship import Ship
 import Class.InGame.ObjectRunner as runner
-import random
-import math
+import random, math, json
 
 pygame.init()
 clock = pygame.time.Clock()
