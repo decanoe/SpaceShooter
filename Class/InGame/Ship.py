@@ -126,11 +126,18 @@ class Ship(Collider, runner.Object):
         return rect
     
     def explode(self):
-        for key in ["wings", "engine", "cockpit"]:
-            mask = pygame.mask.from_surface(runner.SPRITE_LIB.subsurface(self.parts[key], (32, 32)), 254)
+        for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:
+            img = loadSprite(
+                json.load(open("./Data/" + key[0] + self.parts[key[1]] + ".json", 'r')),
+                runner.SPRITE_LIB,
+                gridSize = 32,
+                color1 = self.parts[key[1] + "_color1"],
+                color2 = self.parts[key[1] + "_color2"]
+            )
+            mask = pygame.mask.from_surface(img, 254)
             
             for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.World, self.pos, self.direction, rect.move(self.parts[key]))
+                Debris(self.screen, self.World, self.pos, img.subsurface(rect))
     
     def repair(self, amount: float, deltaTime: float):
         cutout: pygame.Mask = pygame.mask.from_surface(self.sprite, 215)

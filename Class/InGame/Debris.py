@@ -17,22 +17,22 @@ class Debris(Collider, runner.Object):
 
     # =============================================
 
-    def __init__(self, screen : pygame.Surface, World: runner.World, pos: Vector, direction: Vector, area: pygame.Rect = pygame.Rect(0, 0, 1, 1)) -> None:
+    def __init__(self, screen : pygame.Surface, World: runner.World, pos: Vector, img: pygame.Surface) -> None:
         self.alive = runner.DEBRIS_LIFE
         
         self.screen = screen
         self.persistantData = False
         self.clearLagData = True
 
-        super().__init__(direction, pos)
+        super().__init__(Vector(0, 1), pos)
         self.mass = 0.25
         self.setVelocity(Vector.AngleToVector(random.random() * math.pi * 2) * self.mass * 200)
         self.direction = Vector.AngleToVector(random.random() * math.pi * 2)
         self.angle_velocity = (random.random() - 0.5) * 2
         self.pos += self.velocity / 10
 
-        self.sprite = runner.SPRITE_LIB.subsurface(area)
-        self.mask = pygame.mask.from_surface(self.sprite)
+        self.sprite = img
+        self.mask = pygame.mask.from_surface(img)
         
         World.AddObject(self)
         self.World = World

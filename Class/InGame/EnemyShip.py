@@ -1,4 +1,4 @@
-from Functions.ImageModifier import loadSprite
+from Functions.ImageModifier import loadSprite, random_hsl
 from Class.Vector import Vector
 from Class.InGame.Collider import Collider
 import Class.InGame.ObjectRunner as runner
@@ -34,11 +34,18 @@ class EnemyShip(Collider, runner.Object):
         gtype = random.choice(os.listdir("./Data/Weapons")).split('.')[0]
         self.gun = Gun(World, gtype)
 
-        self.parts = {
-            "cockpit": random.choice(os.listdir("./Data/Cockpit")).split('.')[0],
-            "wings": random.choice(os.listdir("./Data/Wings")).split('.')[0],
-            "engine": random.choice(os.listdir("./Data/Engines")).split('.')[0]
-        }
+        self.parts = {}
+        self.parts["cockpit"] = random.choice(os.listdir("./Data/Cockpit/")).split('.')[0]
+        self.parts["cockpit_color1"] = random_hsl(maxs=100, maxl=10)
+        self.parts["cockpit_color2"] = random_hsl(maxs=100, maxl=25)
+
+        self.parts["wings"] = random.choice(os.listdir("./Data/Wings/")).split('.')[0]
+        self.parts["wings_color1"] = random_hsl(maxs=100, maxl=10)
+        self.parts["wings_color2"] = random_hsl(maxs=100, maxl=25)
+        
+        self.parts["engine"] = random.choice(os.listdir("./Data/Engines/")).split('.')[0]
+        self.parts["engine_color1"] = random_hsl(maxs=100, maxl=10)
+        self.parts["engine_color2"] = random_hsl(maxs=100, maxl=25)
 
         self.resetSprite()
         
@@ -58,13 +65,20 @@ class EnemyShip(Collider, runner.Object):
             30)
         return rect
     def explode(self):
-        EnemyShip(self.screen, self.World)
-        return
-        for key in ["wings", "engine", "ship"]:
-            mask = pygame.mask.from_surface(runner.SPRITE_LIB.subsurface(self.parts[key], (32, 32)), 254)
+        for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:
+            img = loadSprite(
+                json.load(open("./Data/" + key[0] + self.parts[key[1]] + ".json", 'r')),
+                runner.SPRITE_LIB,
+                gridSize = 32,
+                color1 = self.parts[key[1] + "_color1"],
+                color2 = self.parts[key[1] + "_color2"]
+            )
+            mask = pygame.mask.from_surface(img, 254)
             
             for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.World, self.pos, self.direction, rect.move(self.parts[key]))
+                Debris(self.screen, self.World, self.pos, img.subsurface(rect))
+        
+        EnemyShip(self.screen, self.World)
         
     def onCollide(self, collider: Collider, point: Vector):
         if type(collider) != Debris:

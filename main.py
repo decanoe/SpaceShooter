@@ -1,5 +1,5 @@
 # makes sure we are in the right directory
-import os 
+import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 # ========================================
