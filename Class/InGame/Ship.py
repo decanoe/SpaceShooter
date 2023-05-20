@@ -3,9 +3,9 @@ from Class.InGame.Collider import Collider
 import Class.InGame.ObjectRunner as runner
 from Class.InGame.Gun import Gun
 from Class.InGame.Debris import Debris
-import pygame
-import math
-import random
+from Functions.ImageModifier import loadSprite
+
+import pygame, math, random, json
 
 SHIP_SQUARE_SIZE = 64
 
@@ -14,22 +14,21 @@ class Ship(Collider, runner.Object):
 
     World: runner.World
     gun: Gun = None
-    parts: dict[str, tuple[int, int]] = {"ship" : (0, 0),
-                   "wings" : (3*32, 64),
-                   "engine" : (0, 128)}
+    base_sprite: pygame.Surface = None
     sprite: pygame.Surface = None
     damage_Effects: pygame.Surface = None
+    parts: dict
 
     # =============================================
 
-    def __init__(self, screen : pygame.Surface, World: runner.World, pos : Vector) -> None:
+    def __init__(self, screen : pygame.Surface, World: runner.World, pos : Vector, parts: dict) -> None:
         self.screen = screen
+        self.parts = parts
 
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(World)
-        self.gun.gunType = "rocket"
+        self.gun = Gun(World, parts["weapon"], colors=(parts["weapon_color1"], parts["weapon_color2"]))
         self.gun.mouseAim = True
         self.resetSprite()
 
@@ -41,7 +40,7 @@ class Ship(Collider, runner.Object):
         
         self.World = World
         self.World.AddObject(self)
-
+    
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
         if (self.timeSinceWallHit() >= 0.4):
             if (direction == None):
@@ -81,7 +80,7 @@ class Ship(Collider, runner.Object):
         if pygame.mouse.get_pressed()[0]:
             self.propulse(deltaTime)
         if pygame.mouse.get_pressed()[2]:
-            self.gun.fire(self, spread=0)
+            self.gun.fire(self, spread=0, focal=256 + Vector.distance(Vector.TupleToPos(pygame.mouse.get_pos()), self.World.centerPositionTo(self.pos)))
         if keys_pressed[pygame.K_z] or keys_pressed[pygame.K_UP]:
             self.propulse(deltaTime, force = self.propulseForce(Vector(0, -1)), direction = Vector(0, -1))
         if keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
@@ -115,7 +114,7 @@ class Ship(Collider, runner.Object):
         return rect
     
     def explode(self):
-        for key in ["wings", "engine", "ship"]:
+        for key in ["wings", "engine", "cockpit"]:
             mask = pygame.mask.from_surface(runner.SPRITE_LIB.subsurface(self.parts[key], (32, 32)), 254)
             
             for rect in mask.get_bounding_rects():
@@ -132,12 +131,8 @@ class Ship(Collider, runner.Object):
         newEffect: pygame.Surface = cutout.to_surface(setcolor=(0, 255, 150, 255), unsetcolor=(0, 0, 0, 0))
         newEffect.blit(cutoutBase.to_surface(setcolor=(0, 0, 0, 0), unsetcolor=(255, 255, 255, 255)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.damage_Effects.blit(newEffect, (0, 0))
-
-        base = runner.SPRITE_LIB.subsurface(self.parts["wings"], (32, 32)).copy()
-        base.blit(runner.SPRITE_LIB.subsurface(self.parts["engine"], (32, 32)), (0, 0))
-        base.blit(runner.SPRITE_LIB.subsurface(self.parts["ship"], (32, 32)), (0, 0))
-        base = pygame.transform.scale(base, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
         
+        base = self.base_sprite.copy()
         base.blit(cutout.to_surface(setcolor=(255, 255, 255, 255 * deltaTime * amount), unsetcolor=(0, 0, 0, 0)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
         self.sprite.blit(base, (0, 0))# = cutout.to_surface(unsetcolor=(0, 0, 0, 0))
@@ -147,10 +142,32 @@ class Ship(Collider, runner.Object):
         self.damage_Effects.blit(cutout, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
     def resetSprite(self):
-        self.sprite = runner.SPRITE_LIB.subsurface(self.parts["wings"], (32, 32)).copy()
-        self.sprite.blit(runner.SPRITE_LIB.subsurface(self.parts["engine"], (32, 32)), (0, 0))
-        self.sprite.blit(runner.SPRITE_LIB.subsurface(self.parts["ship"], (32, 32)), (0, 0))
-        self.sprite = pygame.transform.scale(self.sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+        self.base_sprite = loadSprite(
+            json.load(open("./Data/Wings/" + self.parts["wings"] + ".json", 'r')),
+            runner.SPRITE_LIB,
+            gridSize = 32,
+            color1 = self.parts["wings_color1"],
+            color2 = self.parts["wings_color2"]
+        )
+
+        self.base_sprite.blit(loadSprite(
+            json.load(open("./Data/Engines/" + self.parts["engine"] + ".json", 'r')),
+            runner.SPRITE_LIB,
+            gridSize = 32,
+            color1 = self.parts["engine_color1"],
+            color2 = self.parts["engine_color2"]
+        ), (0, 0))
+
+        self.base_sprite.blit(loadSprite(
+            json.load(open("./Data/Cockpit/" + self.parts["cockpit"] + ".json", 'r')),
+            runner.SPRITE_LIB,
+            gridSize = 32,
+            color1 = self.parts["cockpit_color1"],
+            color2 = self.parts["cockpit_color2"]
+        ), (0, 0))
+        
+        self.base_sprite = pygame.transform.scale(self.base_sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+        self.sprite = self.base_sprite.copy()
     def damageSprite(self, point: Vector, strength: int):
         pygame.draw.circle(self.sprite, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 50), point.toTuple(), strength)
         cutout: pygame.Surface = pygame.mask.from_surface(self.sprite, 215).to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))

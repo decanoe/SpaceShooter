@@ -1,0 +1,28 @@
+{
+    "ship":
+    {
+        "attributes":
+        {
+            "position": [0, 0]
+        },
+
+        "parts":
+        {
+            "cockpit": "arrow",
+            "cockpit_color1": [0, 0, 0],
+            "cockpit_color2": [0, 0, 0],
+            
+            "wings": "wedge",
+            "wings_color1": [0, 0, 0],
+            "wings_color2": [0, 0, 0],
+            
+            "engine": "center thruster",
+            "engine_color1": [0, 0, 0],
+            "engine_color2": [0, 0, 0],
+            
+            "weapon": "sparkle",
+            "weapon_color1": [0, 0, 0],
+            "weapon_color2": [0, 0, 0]
+        }
+    }
+}

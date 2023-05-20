@@ -1,53 +1,12 @@
 from Class.Vector import Vector
 from Class.InGame.Projectile import Projectile
 import Class.InGame.ObjectRunner as runner
+from Functions.ImageModifier import loadSprite
 import pygame, math, random, json
 
 SPRITE_SIZE = 64
 PROJECTILE_SIZE = 32
-
-# COOLDOWNS: dict = {
-#     "sparkle" : 0.25,
-#     "red sparkle" : 0.25,
-#     "small cannon": 1,
-#     "red small cannon": 1,
-#     "rocket": 1,
-#     "red rocket": 1,
-#     "sparkle (ennemy)" : 1,
-#     "red sparkle (ennemy)" : 1,
-#     "small cannon (ennemy)": 2,
-#     "red small cannon (ennemy)": 2,
-#     "rocket (ennemy)": 3,
-#     "red rocket (ennemy)": 3
-#     }
-# SPRITE: dict = {
-#     "sparkle" : (0, 6),
-#     "red sparkle" : (6, 6),
-#     "small cannon": (0, 7),
-#     "red small cannon": (6, 7),
-#     "rocket": (0, 8),
-#     "red rocket": (6, 8),
-#     "sparkle (ennemy)" : (0, 6),
-#     "red sparkle (ennemy)" : (6, 6),
-#     "small cannon (ennemy)": (0, 7),
-#     "red small cannon (ennemy)": (6, 7),
-#     "rocket (ennemy)": (0, 8),
-#     "red rocket (ennemy)": (6, 8)
-#     }
-# OFFSET: dict = {
-#     "sparkle" : [7 * SPRITE_SIZE / 32, -7 * SPRITE_SIZE / 32],
-#     "red sparkle" : [7 * SPRITE_SIZE / 32, -7 * SPRITE_SIZE / 32],
-#     "small cannon": [6 * SPRITE_SIZE / 32],
-#     "red small cannon": [6 * SPRITE_SIZE / 32],
-#     "rocket": [11 * SPRITE_SIZE / 32],
-#     "red rocket": [11 * SPRITE_SIZE / 32],
-#     "sparkle (ennemy)" : [7 * SPRITE_SIZE / 32, -7 * SPRITE_SIZE / 32],
-#     "red sparkle (ennemy)" : [7 * SPRITE_SIZE / 32, -7 * SPRITE_SIZE / 32],
-#     "small cannon (ennemy)": [6 * SPRITE_SIZE / 32],
-#     "red small cannon (ennemy)": [6 * SPRITE_SIZE / 32],
-#     "rocket (ennemy)": [10 * SPRITE_SIZE / 32],
-#     "red rocket (ennemy)": [10 * SPRITE_SIZE / 32]
-#     }
+COLORTYPE = tuple[int, int, int]
 
 class Gun():
     # =============================================
@@ -72,24 +31,35 @@ class Gun():
 
     # =============================================
 
-    def __init__(self, World: runner.World, gunType: str = "small cannon") -> None:
+    def __init__(self, World: runner.World, gunType: str = "sparkle", colors: tuple[COLORTYPE, COLORTYPE] = ((0, 0, 0), (0, 0, 0))) -> None:
         self.World = World
         self.gunType = gunType
-        self.getInfo()
+        self.getInfo(colors)
 
-    def getInfo(self):
+    def resetSprites(self, data: dict, colors: tuple[COLORTYPE, COLORTYPE]):
+        self.animation_length = data.get('animation_length', 0)
+        self.sprites = pygame.transform.scale(loadSprite(
+            data,
+            runner.SPRITE_LIB,
+            gridSize=32,
+            color1 = colors[0],
+            color2 = colors[1]
+        ), (self.animation_length * SPRITE_SIZE, SPRITE_SIZE))
+
+        self.projectile_animation_length = data["projectile"].get('animation_length', 0)
+        self.projectile_sprites = pygame.transform.scale(loadSprite(
+            data["projectile"],
+            runner.SPRITE_LIB,
+            gridSize=16,
+            color1 = colors[0],
+            color2 = colors[1]
+        ), (self.projectile_animation_length * PROJECTILE_SIZE, PROJECTILE_SIZE))
+    
+    def getInfo(self, colors: tuple[COLORTYPE, COLORTYPE]):
         with open('./Data/Weapons/' + self.gunType + '.json', 'r') as f:
             data: dict = json.load(f)
             self.barrel_offset = data.get('barrel_offset', [0])
             self.reload_cooldown = data.get('cooldown', 1)
-
-            self.animation_length = data.get('animation_length', 1)
-            self.sprites = pygame.transform.scale(runner.SPRITE_LIB.subsurface(
-                data.get('animation_position', 0)[0] * 32,
-                data.get('animation_position', 0)[1] * 32,
-                self.animation_length * 32,
-                32
-                ), (self.animation_length * SPRITE_SIZE, SPRITE_SIZE))
             
             self.animation_start = data.get('animation_start', 0)
             self.animation_end = data.get('animation_end', 1)
@@ -99,13 +69,7 @@ class Gun():
             self.projectile_speed = pData.get('speed', 3)
             self.projectile_strength = pData.get('strength', 5)
 
-            self.projectile_animation_length = pData.get('animation_length', 1)
-            self.projectile_sprites = pygame.transform.scale(runner.SPRITE_LIB.subsurface(
-                pData.get('animation_position', 0)[0] * 16,
-                pData.get('animation_position', 0)[1] * 16,
-                self.projectile_animation_length * 16,
-                16
-                ), (self.projectile_animation_length * PROJECTILE_SIZE, PROJECTILE_SIZE))
+            self.resetSprites(data, colors)
 
     def fire(self, ship, spread: float = 0.5, focal: float = 256) -> Vector:
         if (self.currentCooldown > 0): return
@@ -146,3 +110,5 @@ class Gun():
         image: pygame.Surface = pygame.transform.rotate(image, math.degrees(ship.direction.getAngle(Vector(0, -1))))
         rect: pygame.Rect = image.get_rect(center = self.World.centerPositionTo(ship.pos).toTuple())
         ship.screen.blit(image, rect)
+
+        ship.screen.blit(self.projectile_sprites, (0, 0))

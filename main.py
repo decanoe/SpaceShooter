@@ -5,6 +5,7 @@ os.chdir(dir_path)
 # ========================================
 
 import pygame
+import Functions.Loader as loader
 from Class.Vector import Vector
 from Class.InGame.EnemyShip import EnemyShip
 from Class.InGame.Ship import Ship
@@ -61,7 +62,7 @@ pygame.display.set_caption('OmegaRace2')
 process: bool = True
 
 WORLD: runner.World = runner.World()
-ship: Ship = Ship(screen, WORLD, Vector(0, 0))
+ship: Ship = loader.loadPlayerShip(1, screen, WORLD)
 EnemyShip(screen, WORLD)
 EnemyShip(screen, WORLD)
 EnemyShip(screen, WORLD)

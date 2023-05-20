@@ -34,7 +34,7 @@ class EnemyShip(Collider, runner.Object):
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(World, random.choice(["sparkle", "small cannon", "rocket"]))
+        self.gun = Gun(World, "sparkle")#random.choice(["sparkle", "small cannon", "rocket"]))
 
         self.parts["ship"] = (random.randint(0, 17) * 32, random.randint(0, 1) * 32)
         self.parts["wings"] = (random.randint(0, 17) * 32, random.randint(2, 3) * 32)
