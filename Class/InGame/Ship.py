@@ -12,6 +12,7 @@ SHIP_SQUARE_SIZE = 64
 class Ship(Collider, runner.Object):
     # =============================================
 
+    faction = "player"
     World: runner.World
     gun: Gun = None
     base_sprite: pygame.Surface = None
@@ -197,13 +198,10 @@ class Ship(Collider, runner.Object):
         rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
         # self.screen.blit(self.mask.to_surface(), rect)
-    def update(self):
+    def update(self, debug = False):
         self.blitImage(self.sprite)
         self.blitImage(self.damage_Effects)
         self.gun.update(self)
-    def debug_update(self):
-        pygame.draw.rect(self.screen, (0, 255, 0), self.getHitbox(), width=2)
-        self.debugDirection()
     
     def updateMask(self):
         rotatedImage: pygame.Surface = pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1))))

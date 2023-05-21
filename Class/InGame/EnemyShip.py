@@ -11,6 +11,7 @@ SHIP_SQUARE_SIZE = 64
 class EnemyShip(Collider, runner.Object):
     # =============================================
 
+    faction = "enemy"
     gun: Gun = None
     propulseCooldown: float = 0
     World: runner.World
@@ -18,6 +19,8 @@ class EnemyShip(Collider, runner.Object):
     parts: dict
     sprite: pygame.Surface
     base_sprite: pygame.Surface
+
+    debug_target_pos: Vector = None
 
     # =============================================
 
@@ -142,13 +145,16 @@ class EnemyShip(Collider, runner.Object):
         rotatedImage: pygame.Surface = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
         rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
-    def update(self):
+    def update(self, debug = False):
         
         # rect: pygame.Rect = self.mask.to_surface().get_rect(center = self.pos.toTuple())
         # self.screen.blit(self.mask.to_surface(), rect)
 
         self.blitImage(self.sprite)
         self.gun.update(self)
+
+        if (debug and self.debug_target_pos != None):
+            pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(self.debug_target_pos).toTuple())
     
     def updateMask(self):
         self.mask = pygame.mask.from_surface(
@@ -167,7 +173,7 @@ class EnemyShip(Collider, runner.Object):
         if dist < self.screen.get_height() * 0.75:
             timeToReach = dist / (self.gun.projectile_speed * 100)
             target_pos += self.World.center_object.velocity / self.World.center_object.mass * timeToReach * (1 + deltaTime)
-            pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(target_pos).toTuple())
+            self.debug_target_pos = target_pos
 
             angle = self.direction.getAngle(target_pos - self.pos)
             self.angle_velocity = max(min(angle * 50, math.pi), -math.pi)

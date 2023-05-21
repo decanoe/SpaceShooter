@@ -12,7 +12,7 @@ class Projectile(Collider, runner.Object):
 
     alive: float = 1
     World: runner.World
-    parentCollider: Collider = None
+    faction: str = "neutral"
     timeBirth: int = 0
     explodeStrength: int = 0
     speed: float
@@ -24,7 +24,8 @@ class Projectile(Collider, runner.Object):
 
     def __init__(self, screen : pygame.Surface, World: runner.World, parentCollider: Collider, pos : Vector, direction : Vector,
                  sprites: pygame.Surface, animation_length = 0, animation_speed = 1, strength = 3, speed = 5) -> None:
-        self.parentCollider = parentCollider
+        if (hasattr(parentCollider, "faction")):
+            self.faction = parentCollider.faction
         self.screen = screen
 
         self.explodeStrength = strength
@@ -36,7 +37,6 @@ class Projectile(Collider, runner.Object):
         self.mass = 0.1
         self.radius = 1
         self.setVelocity(direction * speed * self.mass * 100)
-        # self.velocity += parentCollider.velocity / parentCollider.mass * self.mass
 
         self.updateMask()
         
@@ -54,9 +54,11 @@ class Projectile(Collider, runner.Object):
             self.alive = 0.99
             self.updateMask()
     def canCollide(self, collider: Collider):
-        if (type(collider) == Projectile): return False
-        if (self.parentCollider == collider or self.alive != 1): return False
-        return super().canCollide(collider)
+        if (self.alive != 1 or type(collider) == Projectile): return False
+
+        if (self.faction == "neutral" or not(hasattr(collider, "faction"))): return True
+
+        return self.faction != collider.faction
 
     def blitImage(self, image: pygame.Surface):
         rotatedImage = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
@@ -64,7 +66,7 @@ class Projectile(Collider, runner.Object):
 
         rotatedImage.set_alpha(int(255 * self.alive))
         self.screen.blit(rotatedImage, rect)
-    def update(self):
+    def update(self, debug = False):
         offset_frame: int = int(self.animation_speed * self.timeBirth) % self.animation_length
 
         self.blitImage(self.sprites.subsurface(offset_frame * PROJECTILE_SIZE, 0, PROJECTILE_SIZE, PROJECTILE_SIZE))

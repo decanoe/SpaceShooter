@@ -19,6 +19,7 @@ clock = pygame.time.Clock()
 size = width, height = 1024, 768
 INNER_PART_SIZE = 0.4
 SAVE_SLOT = 1
+DEBUG_STATE = False
 
 stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), 1 - random.random() * random.random()) for i in range(128)]
 
@@ -31,21 +32,22 @@ def update():
 
         pygame.draw.line(screen, (255, 255, 255), (x, y), (x, y))
     
-    region = WORLD.getRegion(WORLD.center_object.pos)
-    for x_ in range(-runner.LOAD_RADIUS // 2, runner.LOAD_RADIUS // 2 + 1):
-        for y in range(-runner.LOAD_RADIUS, runner.LOAD_RADIUS + 1):
-            x = x_ * 2 + (y - region[1] + region[0])%2
+    if (DEBUG_STATE):
+        region = WORLD.getRegion(WORLD.center_object.pos)
+        for x_ in range(-runner.LOAD_RADIUS // 2, runner.LOAD_RADIUS // 2 + 1):
+            for y in range(-runner.LOAD_RADIUS, runner.LOAD_RADIUS + 1):
+                x = x_ * 2 + (y - region[1] + region[0])%2
 
-            color = (0, 255, 255)
-            if abs(x) == runner.LOAD_RADIUS or abs(y) == runner.LOAD_RADIUS:
-                color = (0, 0, 255)
+                color = (0, 255, 255)
+                if abs(x) == runner.LOAD_RADIUS or abs(y) == runner.LOAD_RADIUS:
+                    color = (0, 0, 255)
 
-            pos = Vector(x + region[0] - 0.5, y + region[1] - 0.5) * runner.REGION_SIZE
-            pygame.draw.rect(
-                screen,
-                color,
-                pygame.Rect(WORLD.centerPositionTo(pos).toTuple(), (runner.REGION_SIZE, runner.REGION_SIZE)),
-                1)
+                pos = Vector(x + region[0] - 0.5, y + region[1] - 0.5) * runner.REGION_SIZE
+                pygame.draw.rect(
+                    screen,
+                    color,
+                    pygame.Rect(WORLD.centerPositionTo(pos).toTuple(), (runner.REGION_SIZE, runner.REGION_SIZE)),
+                    1)
     
     # s = pygame.Surface(size)
     # s.set_alpha(1)
@@ -72,9 +74,9 @@ while process:
     deltaTime: float = clock.tick() / 1000.
     update()
     WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
-    WORLD.UpdateAllGraphics()
+    WORLD.UpdateAllGraphics(debug = DEBUG_STATE)
 
-    Render_Text(str(int(clock.get_fps())), (255,0,0), (0,0))
+    if (DEBUG_STATE): Render_Text(str(int(clock.get_fps())), (255,0,0), (0,0))
 
     events = pygame.event.get()
     ship.eventReactions(events, deltaTime)
@@ -91,6 +93,8 @@ while process:
             if event.key == pygame.K_s:
                 if keys_pressed[pygame.K_LCTRL]:
                     loader.savePlayerShip(SAVE_SLOT, ship)
+            if event.key == pygame.K_F3:
+                DEBUG_STATE = not(DEBUG_STATE)
     
     pygame.display.update()
 

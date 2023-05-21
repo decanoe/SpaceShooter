@@ -17,7 +17,7 @@ class Object:
     def dieFromRange(self) -> bool:
         return True
 
-    def update(self):
+    def update(self, debug = False):
         pass
     def updatePhysics(self) -> bool:
         return False
@@ -138,9 +138,7 @@ class World:
                         i += 1
         
         self.CollectGarbage()
-    def UpdateAllGraphics(self):
-        self.center_object.update()
-
+    def UpdateAllGraphics(self, debug = False):
         centerRegion = self.getRegion(self.center_object.pos)
 
         # for region in [(centerRegion[0] + x, centerRegion[1] + y) for x in range(-1, 2) for y in range(-1, 2)]:
@@ -148,8 +146,10 @@ class World:
             if not(region in self.game_objects):
                 continue
 
-            for o in self.game_objects[region]:
-                o.update()
+            for o in self.game_objects[region].__reversed__():
+                o.update(debug = debug)
+        
+        self.center_object.update(debug = debug)
 
     def CollectGarbage(self):
         centerRegion = self.getRegion(self.center_object.pos)

@@ -53,7 +53,7 @@ class Debris(Collider, runner.Object):
     def updateMask(self):
         self.mask = pygame.mask.from_surface(
             pygame.transform.rotozoom(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1))), 1.5))
-    def update(self):
+    def update(self, debug = False):
         self.blitImage(self.sprite)
     def updatePhysics(self, deltaTime: float) -> bool:
         a = self.angle_velocity
