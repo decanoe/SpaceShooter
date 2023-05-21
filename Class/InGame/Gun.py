@@ -96,7 +96,6 @@ class Gun():
                             strength = self.projectile_strength,
                             speed = self.projectile_speed)
             rotation: float = random.random() - 0.5
-            rotation *= 0
             pr.velocity = pr.velocity.rotate(rotation * rotation * spread)
             pr.velocity += ship.velocity / ship.mass * pr.mass
             

@@ -65,10 +65,8 @@ process: bool = True
 
 WORLD: runner.World = runner.World()
 ship: Ship = loader.loadPlayerShip(SAVE_SLOT, screen, WORLD)
-EnemyShip(screen, WORLD)
-EnemyShip(screen, WORLD)
-EnemyShip(screen, WORLD)
-EnemyShip(screen, WORLD)
+for i in range(8):
+    EnemyShip(screen, WORLD)
 
 while process:
     deltaTime: float = clock.tick() / 1000.

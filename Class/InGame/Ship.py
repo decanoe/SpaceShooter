@@ -37,8 +37,8 @@ class Ship(Collider, runner.Object):
         self.damage_Effects = pygame.Surface((SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE), flags=pygame.SRCALPHA)
         self.damage_Effects.fill((0, 0, 0, 0))
 
-        # self.damageSprite(Vector(0, 0), 32)
-        # self.damageSprite(Vector(48, 48), 32)
+        self.damageSprite(Vector(0, 0), 64)
+        self.damageSprite(Vector(48, 48), 64)
         
         self.World = World
         self.World.AddObject(self)
@@ -86,7 +86,7 @@ class Ship(Collider, runner.Object):
         keys_pressed = pygame.key.get_pressed()
 
         if keys_pressed[pygame.K_r]:
-            self.repair(25, deltaTime)
+            self.repair(50, deltaTime)
 
         if pygame.mouse.get_pressed()[0]:
             self.propulse(deltaTime)
@@ -103,19 +103,24 @@ class Ship(Collider, runner.Object):
     def onCollide(self, collider: Collider, point: Vector):
         t = self.lastWallHit
 
-        if (type(collider) != Debris):
-            super().onCollide(collider, point)
+        if (type(collider) == Debris):
+            return
+        super().onCollide(collider, point)
+
+        inSpritePoint: Vector = point - self.pos
+        inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))
+        inSpritePoint += Vector(self.sprite.get_width(), self.sprite.get_height()) / 2
 
         if (type(collider).__name__ == "Projectile"):
             self.lastWallHit = t
-            inSpritePoint: Vector = point - self.pos
-            inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))
-            inSpritePoint += Vector(self.sprite.get_width(), self.sprite.get_height()) / 2
-
-            # self.screen.blit(self.sprite, (800, 500))
-            # pygame.draw.circle(self.screen, (255, 0, 0), (inSpritePoint + Vector(800, 500)).toTuple(), 2)
-
             self.damageSprite(inSpritePoint, collider.explodeStrength)
+            if (self.mask.count() <= 128):
+                self.explode()
+        else:
+            collisionStrength = (collider.last_frame_velocity * collider.mass - self.last_frame_velocity * self.mass).magnitude() / 200
+            self.damageSprite(inSpritePoint, collisionStrength)
+            if (self.mask.count() <= 128):
+                self.explode()
     
     def explode(self):
         for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:
@@ -143,12 +148,18 @@ class Ship(Collider, runner.Object):
         cutout.draw(cutoutBase, (1, 0))
         cutout.draw(cutoutBase, (0, 1))
 
-        newEffect: pygame.Surface = cutout.to_surface(setcolor=(0, 255, 150, 255), unsetcolor=(0, 0, 0, 0))
+        noise = pygame.transform.scale(runner.SPRITE_LIB.subsurface((12*32, 32), (32, 32)), (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+        noise = pygame.transform.rotate(noise, random.random() * 360)
+
+        newEffect: pygame.Surface = cutout.to_surface(setcolor=(0, 200, 255, 255), unsetcolor=(0, 0, 0, 0))
+        # newEffect.blit(noise, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         newEffect.blit(cutoutBase.to_surface(setcolor=(0, 0, 0, 0), unsetcolor=(255, 255, 255, 255)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.damage_Effects.blit(newEffect, (0, 0))
         
         base = self.base_sprite.copy()
+        base.blit(noise, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         base.blit(cutout.to_surface(setcolor=(255, 255, 255, min(255, 255 * deltaTime * amount)), unsetcolor=(0, 0, 0, 0)), (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        
 
         self.sprite.blit(base, (0, 0))# = cutout.to_surface(unsetcolor=(0, 0, 0, 0))
         self.updateMask()
