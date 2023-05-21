@@ -65,18 +65,15 @@ class EnemyShip(Collider, runner.Object):
             30)
         return rect
     def explode(self):
-        for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:
-            img = loadSprite(
-                json.load(open("./Data/" + key[0] + self.parts[key[1]] + ".json", 'r')),
-                runner.SPRITE_LIB,
-                gridSize = 32,
-                color1 = self.parts[key[1] + "_color1"],
-                color2 = self.parts[key[1] + "_color2"]
-            )
-            mask = pygame.mask.from_surface(img, 254)
-            
-            for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.World, self.pos, img.subsurface(rect))
+        xsplit = [0, random.randint(SHIP_SQUARE_SIZE / 4, SHIP_SQUARE_SIZE / 2), random.randint(SHIP_SQUARE_SIZE / 2, SHIP_SQUARE_SIZE * 3 / 4), SHIP_SQUARE_SIZE]
+        ysplit = [0, random.randint(SHIP_SQUARE_SIZE / 4, SHIP_SQUARE_SIZE / 2), random.randint(SHIP_SQUARE_SIZE / 2, SHIP_SQUARE_SIZE * 3 / 4), SHIP_SQUARE_SIZE]
+        
+        for x in range(3):
+            for y in range(3):
+                Debris(self.screen, self.World, self.pos, self.base_sprite.subsurface(
+                    xsplit[x], ysplit[y],
+                    xsplit[x + 1] - xsplit[x], ysplit[y + 1] - ysplit[y]
+                ))
         
         EnemyShip(self.screen, self.World)
         

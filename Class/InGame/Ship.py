@@ -43,19 +43,19 @@ class Ship(Collider, runner.Object):
         self.World.AddObject(self)
     def randomize(self):
         self.parts["cockpit"] = random.choice(os.listdir("./Data/Cockpit/")).split('.')[0]
-        self.parts["cockpit_color1"] = random_hsl(maxs=50, maxl=5)
-        self.parts["cockpit_color2"] = random_hsl(maxs=75, maxl=5)
+        self.parts["cockpit_color1"] = random_hsl(maxs=50, maxl=0)
+        self.parts["cockpit_color2"] = random_hsl(maxs=75, maxl=0)
 
         self.parts["wings"] = random.choice(os.listdir("./Data/Wings/")).split('.')[0]
-        self.parts["wings_color1"] = random_hsl(maxs=50, maxl=5)
-        self.parts["wings_color2"] = random_hsl(maxs=75, maxl=5)
+        self.parts["wings_color1"] = random_hsl(maxs=50, maxl=0)
+        self.parts["wings_color2"] = random_hsl(maxs=75, maxl=0)
         
         self.parts["engine"] = random.choice(os.listdir("./Data/Engines/")).split('.')[0]
-        self.parts["engine_color1"] = random_hsl(maxs=50, maxl=5)
-        self.parts["engine_color2"] = random_hsl(maxs=75, maxl=5)
+        self.parts["engine_color1"] = random_hsl(maxs=25, maxl=0)
+        self.parts["engine_color2"] = random_hsl(maxs=75, maxl=0)
         
         self.gun.gunType = random.choice(os.listdir("./Data/Weapons/")).split('.')[0]
-        self.gun.getInfo(colors = (random_hsl(maxs=50, maxl=5), random_hsl(maxs=75, maxl=5)))
+        self.gun.getInfo(colors = (random_hsl(maxs=5, maxl=0), random_hsl(maxs=75, maxl=0)))
         self.resetSprite()
         self.gun.fireCooldown = 0
 
@@ -137,7 +137,7 @@ class Ship(Collider, runner.Object):
             mask = pygame.mask.from_surface(img, 254)
             
             for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.World, self.pos, img.subsurface(rect))
+                Debris(self.screen, self.World, self.pos, pygame.transform.scale2x(img.subsurface(rect)))
     
     def repair(self, amount: float, deltaTime: float):
         cutout: pygame.Mask = pygame.mask.from_surface(self.sprite, 215)

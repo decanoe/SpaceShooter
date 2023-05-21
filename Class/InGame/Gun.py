@@ -12,6 +12,7 @@ class Gun():
     # =============================================
 
     reload_cooldown: float = 1
+    recoil: float = 5
     sprites: pygame.Surface = None
     barrel_offset: list[int] = []
     animation_length: int = 1
@@ -60,6 +61,7 @@ class Gun():
             data: dict = json.load(f)
             self.barrel_offset = data.get('barrel_offset', [0])
             self.reload_cooldown = data.get('cooldown', 1)
+            self.recoil = data.get('recoil', 5)
             
             self.animation_start = data.get('animation_start', 0)
             self.animation_end = data.get('animation_end', 1)
@@ -97,7 +99,7 @@ class Gun():
             pr.velocity = pr.velocity.rotate(rotation * rotation * spread)
             pr.velocity += ship.velocity / ship.mass * pr.mass
             
-            ship.velocity -= pr.velocity * pr.mass / ship.mass * (self.projectile_strength / 5)
+            ship.velocity -= pr.velocity * pr.mass / ship.mass * self.recoil
     def reload(self, deltaTime: float):
         if (self.currentCooldown > 0):
             self.currentCooldown -= deltaTime

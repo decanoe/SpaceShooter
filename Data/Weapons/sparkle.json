@@ -1,5 +1,6 @@
 {
-    "cooldown": 0.25, 
+    "cooldown": 0.25,
+    "recoil": 3,
     "barrel_offset": [7, -7],
 
     "animation_position_color1": [0, 4],
