@@ -8,15 +8,14 @@ REGION_SIZE: int = 256
 LOAD_RADIUS: int = 6
 
 class Object:
-    persistantData: bool = True
     clearLagData: bool = False
     pos: Vector
     screen: pygame.Surface
 
     def centerOnPos(self, point: Vector):
         return point - self.pos + Vector.TupleToPos(self.screen.get_rect().size) / 2
-    def dieFromRange(self):
-        pass
+    def dieFromRange(self) -> bool:
+        return True
 
     def update(self):
         pass
@@ -129,9 +128,9 @@ class World:
                     if (region != newRegion):
                         self.game_objects[region].pop(i)
 
-                        if obj.persistantData:
+                        if abs(centerRegion[0] - newRegion[0]) <= LOAD_RADIUS and abs(centerRegion[1] - newRegion[1]) <= LOAD_RADIUS:
                             self.AddObject(obj)
-                        elif abs(centerRegion[0] - newRegion[0]) <= LOAD_RADIUS and abs(centerRegion[1] - newRegion[1]) <= LOAD_RADIUS:
+                        elif not(obj.dieFromRange()):
                             self.AddObject(obj)
                         else:
                             del(obj)
@@ -167,7 +166,7 @@ class World:
             while i < len(self.game_objects[region]):
                 obj = self.game_objects[region][i]
 
-                if not(obj.persistantData):
+                if obj.dieFromRange():
                     self.game_objects[region].pop(i)
                     del(obj)
                 else:

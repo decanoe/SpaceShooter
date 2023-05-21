@@ -26,7 +26,6 @@ class Projectile(Collider, runner.Object):
                  sprites: pygame.Surface, animation_length = 0, animation_speed = 1, strength = 3, speed = 5) -> None:
         self.parentCollider = parentCollider
         self.screen = screen
-        self.persistantData = False
 
         self.explodeStrength = strength
         self.sprites = sprites

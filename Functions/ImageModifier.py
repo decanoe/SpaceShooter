@@ -2,7 +2,6 @@ import pygame, random, json
 
 def switch_color(img: pygame.Surface, from_color: list[tuple[int, int, int]], to_color: list[tuple[int, int, int]]):
     for i in range(min(len(from_color), len(to_color))):
-        print(from_color[i], ", ", to_color[i])
         img.blit(pygame.mask.from_threshold(img, from_color[i], threshold=(2, 2, 2, 0)).to_surface(setcolor=to_color[i], unsetcolor=(0, 0, 0, 0)), (0, 0))
 def isScaled(color1, color2) -> bool:
     scale = None

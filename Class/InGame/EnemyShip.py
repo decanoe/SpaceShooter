@@ -82,26 +82,26 @@ class EnemyShip(Collider, runner.Object):
         EnemyShip(self.screen, self.World)
         
     def onCollide(self, collider: Collider, point: Vector):
-        if type(collider) != Debris:
-            super().onCollide(collider, point)
+        if type(collider) == Debris:
+            return
+        super().onCollide(collider, point)
+
+        inSpritePoint: Vector = point - self.pos
+        inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))
+        inSpritePoint += Vector(self.sprite.get_width(), self.sprite.get_height()) / 2
 
         if (type(collider).__name__ == "Projectile"):
-            # self.lives -= 1
-            # if (self.lives <= 0):
-            #     self.explode()
-        
-            inSpritePoint: Vector = point - self.pos
-            inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))
-            inSpritePoint += Vector(self.sprite.get_width(), self.sprite.get_height()) / 2
-
-            # self.screen.blit(self.sprite, (800, 500))
-            # pygame.draw.circle(self.screen, (255, 0, 0), (inSpritePoint + Vector(800, 500)).toTuple(), 2)
-
             self.damageSprite(inSpritePoint, collider.explodeStrength)
+            if (self.mask.count() <= 1024):
+                self.explode()
+        else:
+            collisionStrength = (collider.last_frame_velocity * collider.mass - self.last_frame_velocity * self.mass).magnitude() / 200
+            self.damageSprite(inSpritePoint, collisionStrength)
             if (self.mask.count() <= 1024):
                 self.explode()
     def dieFromRange(self):
         EnemyShip(self.screen, self.World)
+        return True
 
     def resetSprite(self):
         self.base_sprite = loadSprite(

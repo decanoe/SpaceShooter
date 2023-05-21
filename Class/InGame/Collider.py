@@ -14,6 +14,8 @@ class Collider:
     angle_velocity: float = 0
     lastWallHit: float = 0
 
+    lastObjectHit = None
+
     mask: pygame.Mask = None
 
     # =============================================
@@ -28,11 +30,16 @@ class Collider:
         return (point - self.pos).normalized()
     
     def canCollide(self, collider: Collider) -> bool:
-        return self.mask != None
+        if (self.mask == None):
+            return False
+        if (self.lastObjectHit != None and self.lastWallHit < .25):
+            return collider != self.lastObjectHit
+        return True
     def onCollide(self, collider: Collider, point: Vector):
         self.lastWallHit = 0
 
         if collider == None: return
+        self.lastObjectHit = collider
 
         normal: Vector = collider.getNormal(point, self)
         
@@ -54,6 +61,8 @@ class Collider:
         
         if (self.lastWallHit < 32):
             self.lastWallHit += deltaTime
+        else:
+            self.lastObjectHit = None
         
         self.pos += self.velocity * deltaTime / self.mass
 

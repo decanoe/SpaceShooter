@@ -21,7 +21,6 @@ class Debris(Collider, runner.Object):
         self.alive = runner.DEBRIS_LIFE
         
         self.screen = screen
-        self.persistantData = False
         self.clearLagData = True
 
         super().__init__(Vector(0, 1), pos)
