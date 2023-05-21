@@ -37,8 +37,6 @@ class Debris(Collider, runner.Object):
         World.AddObject(self)
         self.World = World
 
-    def getHitbox(self) -> pygame.Rect :
-        return self.sprite.get_rect()
     def canCollide(self, collider: Collider) -> bool:
         if (type(collider) == Debris or type(collider) == Projectile): return False
         return super().canCollide(collider)
