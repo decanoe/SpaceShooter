@@ -52,7 +52,8 @@ class Ship(Collider, runner.Object):
         self.parts["engine_colors"] = randomPaletteFor("./Data/Engines/" + self.parts["engine"] + ".json")
         
         self.gun.gunType = random.choice(os.listdir("./Data/Weapons/")).split('.')[0]
-        self.gun.getInfo(colors = randomPaletteFor("./Data/Weapons/" + self.gun.gunType + ".json"))
+        self.gun.colors = randomPaletteFor("./Data/Weapons/" + self.gun.gunType + ".json")
+        self.gun.getInfo()
         self.resetSprite()
         self.gun.fireCooldown = 0
 
@@ -82,7 +83,7 @@ class Ship(Collider, runner.Object):
 
         # Continuous key press
         keys_pressed = pygame.key.get_pressed()
-        
+
         if keys_pressed[pygame.K_r]:
             self.repair(25, deltaTime)
 
@@ -114,13 +115,6 @@ class Ship(Collider, runner.Object):
             # pygame.draw.circle(self.screen, (255, 0, 0), (inSpritePoint + Vector(800, 500)).toTuple(), 2)
 
             self.damageSprite(inSpritePoint, collider.explodeStrength)
-    def getHitbox(self) -> pygame.Rect:
-        rect = pygame.Rect(
-            self.pos.x - 15,
-            self.pos.y - 15,
-            30,
-            30)
-        return rect
     
     def explode(self):
         for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:

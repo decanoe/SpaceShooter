@@ -18,6 +18,7 @@ clock = pygame.time.Clock()
 #résolution de la fenêtre
 size = width, height = 1024, 768
 INNER_PART_SIZE = 0.4
+SAVE_SLOT = 1
 
 stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), 1 - random.random() * random.random()) for i in range(128)]
 
@@ -61,7 +62,7 @@ pygame.display.set_caption('OmegaRace2')
 process: bool = True
 
 WORLD: runner.World = runner.World()
-ship: Ship = loader.loadPlayerShip(1, screen, WORLD)
+ship: Ship = loader.loadPlayerShip(SAVE_SLOT, screen, WORLD)
 EnemyShip(screen, WORLD)
 EnemyShip(screen, WORLD)
 EnemyShip(screen, WORLD)
@@ -78,6 +79,8 @@ while process:
     events = pygame.event.get()
     ship.eventReactions(events, deltaTime)
 
+    # Continuous key press
+    keys_pressed = pygame.key.get_pressed()
     #on vérifie dans la liste des évènements si l'utilisateur appuie sur des touches ou clique avec sa souris
     for event in events:
         if event.type == pygame.QUIT:
@@ -85,6 +88,9 @@ while process:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:                                                               #Quit the game
                 process = False
+            if event.key == pygame.K_s:
+                if keys_pressed[pygame.K_LCTRL]:
+                    loader.savePlayerShip(SAVE_SLOT, ship)
     
     pygame.display.update()
 

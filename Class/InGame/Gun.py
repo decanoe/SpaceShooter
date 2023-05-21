@@ -11,6 +11,8 @@ COLORTYPE = tuple[int, int, int]
 class Gun():
     # =============================================
 
+    colors: list
+
     reload_cooldown: float = 1
     recoil: float = 5
     sprites: pygame.Surface = None
@@ -35,15 +37,16 @@ class Gun():
     def __init__(self, World: runner.World, gunType: str = "sparkle", colors: list[COLORTYPE] = []) -> None:
         self.World = World
         self.gunType = gunType
-        self.getInfo(colors)
+        self.colors = colors
+        self.getInfo()
 
-    def resetSprites(self, data: dict, colors: list[COLORTYPE]):
+    def resetSprites(self, data: dict):
         self.animation_length = data.get('animation_length', 0)
         self.sprites = pygame.transform.scale(loadSprite(
             data,
             runner.SPRITE_LIB,
             gridSize=32,
-            colors = colors
+            colors = self.colors
         ), (self.animation_length * SPRITE_SIZE, SPRITE_SIZE))
 
         self.projectile_animation_length = data["projectile"].get('animation_length', 0)
@@ -51,10 +54,10 @@ class Gun():
             data["projectile"],
             runner.SPRITE_LIB,
             gridSize=16,
-            colors = colors
+            colors = self.colors
         ), (self.projectile_animation_length * PROJECTILE_SIZE, PROJECTILE_SIZE))
     
-    def getInfo(self, colors: list[COLORTYPE]):
+    def getInfo(self):
         with open('./Data/Weapons/' + self.gunType + '.json', 'r') as f:
             data: dict = json.load(f)
             self.barrel_offset = data.get('barrel_offset', [0])
@@ -69,7 +72,7 @@ class Gun():
             self.projectile_speed = pData.get('speed', 3)
             self.projectile_strength = pData.get('strength', 5)
 
-            self.resetSprites(data, colors)
+            self.resetSprites(data)
 
     def fire(self, ship, spread: float = 0.5, focal: float = 256) -> Vector:
         if (self.currentCooldown > 0): return
