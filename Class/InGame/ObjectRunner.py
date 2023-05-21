@@ -5,7 +5,7 @@ import pygame
 SPRITE_LIB = pygame.image.load("./Sprites/Ship - parts.png")
 DEBRIS_LIFE: int = 25
 REGION_SIZE: int = 256
-LOAD_RADIUS: int = 3
+LOAD_RADIUS: int = 6
 
 class Object:
     persistantData: bool = True

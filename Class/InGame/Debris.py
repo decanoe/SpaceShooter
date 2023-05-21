@@ -26,7 +26,7 @@ class Debris(Collider, runner.Object):
 
         super().__init__(Vector(0, 1), pos)
         self.mass = 0.25
-        self.setVelocity(Vector.AngleToVector(random.random() * math.pi * 2) * self.mass * 200)
+        self.setVelocity(Vector.AngleToVector(random.random() * math.pi * 2) * self.mass * random.random() * 200)
         self.direction = Vector.AngleToVector(random.random() * math.pi * 2)
         self.angle_velocity = (random.random() - 0.5) * 2
         self.pos += self.velocity / 10

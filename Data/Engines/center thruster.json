@@ -1,3 +1,4 @@
 {
-    "animation_position_color1": [5, 2]
+    "animation_position": [5, 2],
+    "from_color": [[116, 116, 116], [72, 72, 72]]
 }

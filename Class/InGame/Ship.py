@@ -3,7 +3,7 @@ from Class.InGame.Collider import Collider
 import Class.InGame.ObjectRunner as runner
 from Class.InGame.Gun import Gun
 from Class.InGame.Debris import Debris
-from Functions.ImageModifier import loadSprite, random_hsl
+from Functions.ImageModifier import loadSprite, randomPaletteFor
 
 import pygame, math, random, json, os
 
@@ -28,7 +28,7 @@ class Ship(Collider, runner.Object):
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
-        self.gun = Gun(World, parts["weapon"], colors=(parts["weapon_color1"], parts["weapon_color2"]))
+        self.gun = Gun(World, parts["weapon"], colors=parts["weapon_colors"])
         self.gun.mouseAim = True
 
         self.resetSprite()
@@ -43,19 +43,16 @@ class Ship(Collider, runner.Object):
         self.World.AddObject(self)
     def randomize(self):
         self.parts["cockpit"] = random.choice(os.listdir("./Data/Cockpit/")).split('.')[0]
-        self.parts["cockpit_color1"] = random_hsl(maxs=50, maxl=0)
-        self.parts["cockpit_color2"] = random_hsl(maxs=75, maxl=0)
+        self.parts["cockpit_colors"] = randomPaletteFor("./Data/Cockpit/" + self.parts["cockpit"] + ".json")
 
         self.parts["wings"] = random.choice(os.listdir("./Data/Wings/")).split('.')[0]
-        self.parts["wings_color1"] = random_hsl(maxs=50, maxl=0)
-        self.parts["wings_color2"] = random_hsl(maxs=75, maxl=0)
+        self.parts["wings_colors"] = randomPaletteFor("./Data/Wings/" + self.parts["wings"] + ".json")
         
         self.parts["engine"] = random.choice(os.listdir("./Data/Engines/")).split('.')[0]
-        self.parts["engine_color1"] = random_hsl(maxs=25, maxl=0)
-        self.parts["engine_color2"] = random_hsl(maxs=75, maxl=0)
+        self.parts["engine_colors"] = randomPaletteFor("./Data/Engines/" + self.parts["engine"] + ".json")
         
         self.gun.gunType = random.choice(os.listdir("./Data/Weapons/")).split('.')[0]
-        self.gun.getInfo(colors = (random_hsl(maxs=5, maxl=0), random_hsl(maxs=75, maxl=0)))
+        self.gun.getInfo(colors = randomPaletteFor("./Data/Weapons/" + self.gun.gunType + ".json"))
         self.resetSprite()
         self.gun.fireCooldown = 0
 
@@ -82,10 +79,10 @@ class Ship(Collider, runner.Object):
                     self.explode()
             if event.type == pygame.MOUSEBUTTONDOWN:                                      #Use mouse button
                 pass
-            
+
         # Continuous key press
         keys_pressed = pygame.key.get_pressed()
-
+        
         if keys_pressed[pygame.K_r]:
             self.repair(25, deltaTime)
 
@@ -131,13 +128,17 @@ class Ship(Collider, runner.Object):
                 json.load(open("./Data/" + key[0] + self.parts[key[1]] + ".json", 'r')),
                 runner.SPRITE_LIB,
                 gridSize = 32,
-                color1 = self.parts[key[1] + "_color1"],
-                color2 = self.parts[key[1] + "_color2"]
+                colors = self.parts[key[1] + "_colors"]
             )
-            mask = pygame.mask.from_surface(img, 254)
+            xsplit = [0, random.randint(32 / 4, 32 / 2), random.randint(32 / 2, 32 * 3 / 4), 32]
+            ysplit = [0, random.randint(32 / 4, 32 / 2), random.randint(32 / 2, 32 * 3 / 4), 32]
             
-            for rect in mask.get_bounding_rects():
-                Debris(self.screen, self.World, self.pos, pygame.transform.scale2x(img.subsurface(rect)))
+            for x in range(3):
+                for y in range(3):
+                    Debris(self.screen, self.World, self.pos, img.subsurface(
+                        xsplit[x], ysplit[y],
+                        xsplit[x + 1] - xsplit[x], ysplit[y + 1] - ysplit[y]
+                    ))
     
     def repair(self, amount: float, deltaTime: float):
         cutout: pygame.Mask = pygame.mask.from_surface(self.sprite, 215)
@@ -165,24 +166,21 @@ class Ship(Collider, runner.Object):
             json.load(open("./Data/Wings/" + self.parts["wings"] + ".json", 'r')),
             runner.SPRITE_LIB,
             gridSize = 32,
-            color1 = self.parts["wings_color1"],
-            color2 = self.parts["wings_color2"]
+            colors = self.parts.get("wings_colors", [])
         )
 
         self.base_sprite.blit(loadSprite(
             json.load(open("./Data/Engines/" + self.parts["engine"] + ".json", 'r')),
             runner.SPRITE_LIB,
             gridSize = 32,
-            color1 = self.parts["engine_color1"],
-            color2 = self.parts["engine_color2"]
+            colors = self.parts.get("engine_colors", [])
         ), (0, 0))
 
         self.base_sprite.blit(loadSprite(
             json.load(open("./Data/Cockpit/" + self.parts["cockpit"] + ".json", 'r')),
             runner.SPRITE_LIB,
             gridSize = 32,
-            color1 = self.parts["cockpit_color1"],
-            color2 = self.parts["cockpit_color2"]
+            colors = self.parts.get("cockpit_colors", [])
         ), (0, 0))
         
         self.base_sprite = pygame.transform.scale(self.base_sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))

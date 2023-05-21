@@ -1,4 +1,4 @@
-from Functions.ImageModifier import loadSprite, random_hsl
+from Functions.ImageModifier import loadSprite, randomPaletteFor
 from Class.Vector import Vector
 from Class.InGame.Collider import Collider
 import Class.InGame.ObjectRunner as runner
@@ -26,54 +26,58 @@ class EnemyShip(Collider, runner.Object):
 
         if (pos == None):
             pos = World.center_object.pos
-            pos += Vector.AngleToVector(random.random() * math.pi * 2) * runner.LOAD_RADIUS * runner.REGION_SIZE
+            pos += Vector.AngleToVector(random.random() * math.pi * 2) * runner.REGION_SIZE * 3.5
         
         Collider.__init__(self, Vector(0, -1).normalize(), pos)
         self.mass = 2
         
         gtype = random.choice(os.listdir("./Data/Weapons")).split('.')[0]
-        self.gun = Gun(World, gtype)
+        self.gun = Gun(World, gtype, randomPaletteFor("./Data/Weapons/" + gtype + ".json"))
 
         self.parts = {}
         self.parts["cockpit"] = random.choice(os.listdir("./Data/Cockpit/")).split('.')[0]
-        self.parts["cockpit_color1"] = random_hsl(maxs=100, maxl=10)
-        self.parts["cockpit_color2"] = random_hsl(maxs=100, maxl=25)
+        self.parts["cockpit_colors"] = randomPaletteFor("./Data/Cockpit/" + self.parts["cockpit"] + ".json")
 
         self.parts["wings"] = random.choice(os.listdir("./Data/Wings/")).split('.')[0]
-        self.parts["wings_color1"] = random_hsl(maxs=100, maxl=10)
-        self.parts["wings_color2"] = random_hsl(maxs=100, maxl=25)
+        self.parts["wings_colors"] = randomPaletteFor("./Data/Wings/" + self.parts["wings"] + ".json")
         
         self.parts["engine"] = random.choice(os.listdir("./Data/Engines/")).split('.')[0]
-        self.parts["engine_color1"] = random_hsl(maxs=100, maxl=10)
-        self.parts["engine_color2"] = random_hsl(maxs=100, maxl=25)
+        self.parts["engine_colors"] = randomPaletteFor("./Data/Engines/" + self.parts["engine"] + ".json")
 
         self.resetSprite()
         
         self.World = World
         self.World.AddObject(self)
 
-    def propulse(self):
-        if (self.timeSinceWallHit() >= 0.5 and self.propulseCooldown <= 0):
-            self.velocity = self.direction * (1 + self.mass) * 125
-            self.propulseCooldown = 1
-
-    def getHitbox(self) -> pygame.Rect :
-        rect = pygame.Rect(
-            self.pos.x - 15,
-            self.pos.y - 15,
-            30,
-            30)
-        return rect
+    def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
+        if (self.timeSinceWallHit() >= 0.4):
+            if (direction == None):
+                direction = self.direction
+            self.velocity += direction * force * (1 + self.mass) * deltaTime * 40
+    def propulseForce(self, direction) -> float:
+        f: float = 2 + 4 * abs(self.direction.dot(direction))
+        if (self.direction.dot(direction) > -0.25):
+            return f
+        else:
+            return f / 2
+    
     def explode(self):
-        xsplit = [0, random.randint(SHIP_SQUARE_SIZE / 4, SHIP_SQUARE_SIZE / 2), random.randint(SHIP_SQUARE_SIZE / 2, SHIP_SQUARE_SIZE * 3 / 4), SHIP_SQUARE_SIZE]
-        ysplit = [0, random.randint(SHIP_SQUARE_SIZE / 4, SHIP_SQUARE_SIZE / 2), random.randint(SHIP_SQUARE_SIZE / 2, SHIP_SQUARE_SIZE * 3 / 4), SHIP_SQUARE_SIZE]
-        
-        for x in range(3):
-            for y in range(3):
-                Debris(self.screen, self.World, self.pos, self.base_sprite.subsurface(
-                    xsplit[x], ysplit[y],
-                    xsplit[x + 1] - xsplit[x], ysplit[y + 1] - ysplit[y]
-                ))
+        for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:
+            img = loadSprite(
+                json.load(open("./Data/" + key[0] + self.parts[key[1]] + ".json", 'r')),
+                runner.SPRITE_LIB,
+                gridSize = 32,
+                colors = self.parts[key[1] + "_colors"]
+            )
+            xsplit = [0, random.randint(32 // 4, 32 * 3 // 4), 32]
+            ysplit = [0, random.randint(32 // 4, 32 * 3 // 4), 32]
+            
+            for x in range(2):
+                for y in range(2):
+                    Debris(self.screen, self.World, self.pos, img.subsurface(
+                        xsplit[x], ysplit[y],
+                        xsplit[x + 1] - xsplit[x], ysplit[y + 1] - ysplit[y]
+                    ))
         
         EnemyShip(self.screen, self.World)
         
@@ -104,24 +108,21 @@ class EnemyShip(Collider, runner.Object):
             json.load(open("./Data/Wings/" + self.parts["wings"] + ".json", 'r')),
             runner.SPRITE_LIB,
             gridSize = 32,
-            color1 = self.parts.get("wings_color1", (0, 0, 0)),
-            color2 = self.parts.get("wings_color2", (0, 0, 0))
+            colors = self.parts.get("wings_colors", [])
         )
 
         self.base_sprite.blit(loadSprite(
             json.load(open("./Data/Engines/" + self.parts["engine"] + ".json", 'r')),
             runner.SPRITE_LIB,
             gridSize = 32,
-            color1 = self.parts.get("engine_color1", (0, 0, 0)),
-            color2 = self.parts.get("engine_color2", (0, 0, 0))
+            colors = self.parts.get("engine_colors", [])
         ), (0, 0))
 
         self.base_sprite.blit(loadSprite(
             json.load(open("./Data/Cockpit/" + self.parts["cockpit"] + ".json", 'r')),
             runner.SPRITE_LIB,
             gridSize = 32,
-            color1 = self.parts.get("cockpit_color1", (0, 0, 0)),
-            color2 = self.parts.get("cockpit_color2", (0, 0, 0))
+            colors = self.parts.get("cockpit_colors", [])
         ), (0, 0))
         
         self.base_sprite = pygame.transform.scale(self.base_sprite, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
@@ -176,8 +177,10 @@ class EnemyShip(Collider, runner.Object):
 
             if (self.propulseCooldown > 0):
                 self.propulseCooldown -= deltaTime
-            if Vector.distance(self.pos, target_pos) > 128:
-                self.propulse()
+            if Vector.distance(self.pos, target_pos) > 256:
+                self.propulse(deltaTime)
+            elif Vector.distance(self.pos, target_pos) < 64:
+                self.propulse(deltaTime, self.propulseForce(self.direction * -1), self.direction * -1)
         else:
             line = (self.World.centerPositionTo(target_pos).toTuple(), self.World.centerPositionTo(self.pos).toTuple())
             self.screen.get_rect().clipline(line)

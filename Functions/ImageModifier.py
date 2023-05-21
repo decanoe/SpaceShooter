@@ -1,58 +1,48 @@
-import pygame, random
-import numpy as np
-import numexpr as ne
+import pygame, random, json
 
-def random_hsl(maxh: int = 359, maxs: int = 50, maxl: int = 100):
-    return (random.randint(0, maxh), random.randint(0, maxs), random.randint(-maxl, maxl))
-def shift_hsl(img: pygame.Surface, hOffset: int = 0, sOffset: int = 0, lOffset: int = 0):
-    pixels = pygame.PixelArray(img)
-    for x in range(img.get_width()):
-        for y in range(img.get_height()):
-            color = img.unmap_rgb(pixels[x][y])
-            h, s, l, a = color.hsla
-            color.hsla = (
-                int(h + hOffset) - int((h + hOffset) / 360) * 360,
-                min(100, max(0, int(s + sOffset))),
-                min(100, max(0, int(l + lOffset))),
-                int(a))
-            pixels[x][y] = color
-    del pixels
-
-def loadSprite(jsonData: dict, SPRITE_LIB: pygame.Surface, gridSize: int = 32, color1: tuple[int, int, int] = (0, 0, 0), color2: tuple[int, int, int] = (0, 0, 0)):
-    img = None
-    length = jsonData.get("animation_length", 1)
-
-    # effect without color
-    if ('animation_position_NoneColor' in jsonData):
-        img = SPRITE_LIB.subsurface(
-            jsonData['animation_position_NoneColor'][0] * gridSize,
-            jsonData['animation_position_NoneColor'][1] * gridSize,
-            length * gridSize, gridSize).copy()
+def switch_color(img: pygame.Surface, from_color: list[tuple[int, int, int]], to_color: list[tuple[int, int, int]]):
+    for i in range(min(len(from_color), len(to_color))):
+        print(from_color[i], ", ", to_color[i])
+        img.blit(pygame.mask.from_threshold(img, from_color[i], threshold=(2, 2, 2, 0)).to_surface(setcolor=to_color[i], unsetcolor=(0, 0, 0, 0)), (0, 0))
+def isScaled(color1, color2) -> bool:
+    scale = None
+    for i in range(3):
+        if (color1[i] == 0):
+            if (color2[i] != 0): return False
+            continue
+        
+        if (scale == None):
+            scale = color2[i] / color1[i]
+        elif (scale != color2[i] / color1[i]):
+            return False
     
-    # base color
-    if ('animation_position_color1' in jsonData):
-        temp = SPRITE_LIB.subsurface(
-            jsonData['animation_position_color1'][0] * gridSize,
-            jsonData['animation_position_color1'][1] * gridSize,
-            length * gridSize, gridSize).copy()
-        shift_hsl(temp, *color1)
+    return True
+def randomPalette(paletteSrc: list[tuple[int, int, int]]) -> list[tuple[int, int, int]]:
+    palette: list = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))]
 
-        if (img == None):
-            img = temp
+    for i in range(1, len(paletteSrc)):
+        if isScaled(paletteSrc[i-1], paletteSrc[i]):
+            palette.append((
+                min(255, max(0, palette[-1][0] + paletteSrc[i][0] - paletteSrc[i - 1][0])),
+                min(255, max(0, palette[-1][1] + paletteSrc[i][1] - paletteSrc[i - 1][1])),
+                min(255, max(0, palette[-1][2] + paletteSrc[i][2] - paletteSrc[i - 1][2]))
+            ))
         else:
-            img.blit(temp, (0, 0))
+            palette.append((random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)))
+    
+    return palette
+def randomPaletteFor(path: str) -> list[tuple[int, int, int]]:
+    data = json.load(open(path, 'r'))
+    return randomPalette(data.get("from_color", []))
 
-    # second color
-    if ('animation_position_color2' in jsonData):
-        temp = SPRITE_LIB.subsurface(
-            jsonData['animation_position_color2'][0] * gridSize,
-            jsonData['animation_position_color2'][1] * gridSize,
-            length * gridSize, gridSize).copy()
-        shift_hsl(temp, *color2)
-
-        if (img == None):
-            img = temp
-        else:
-            img.blit(temp, (0, 0))
+def loadSprite(jsonData: dict, SPRITE_LIB: pygame.Surface, gridSize: int = 32, colors: list[tuple[int, int, int]] = []):
+    length = jsonData.get("animation_length", 1)
+    from_color = jsonData.get("from_color", [])
+    
+    img = SPRITE_LIB.subsurface(
+        jsonData['animation_position'][0] * gridSize,
+        jsonData['animation_position'][1] * gridSize,
+        length * gridSize, gridSize).copy()
+    switch_color(img, from_color, colors)
 
     return img
