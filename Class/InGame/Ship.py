@@ -19,6 +19,7 @@ class Ship(Collider, runner.Object):
     sprite: pygame.Surface = None
     damage_Effects: pygame.Surface = None
     parts: dict
+    exploded: bool = False
 
     # =============================================
 
@@ -57,6 +58,7 @@ class Ship(Collider, runner.Object):
         self.gun.getInfo()
         self.resetSprite()
         self.gun.fireCooldown = 0
+        self.exploded = False
 
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
         if (self.timeSinceWallHit() >= 0.4):
@@ -114,13 +116,15 @@ class Ship(Collider, runner.Object):
         if (type(collider).__name__ == "Projectile"):
             self.lastWallHit = t
             self.damageSprite(inSpritePoint, collider.explodeStrength)
-            if (self.mask.count() <= 128):
+            if (not(self.exploded) and self.mask.count() <= 128):
                 self.explode()
+                self.exploded = True
         else:
             collisionStrength = (collider.last_frame_velocity * collider.mass - self.last_frame_velocity * self.mass).magnitude() / 200
             self.damageSprite(inSpritePoint, collisionStrength)
-            if (self.mask.count() <= 128):
+            if (not(self.exploded) and self.mask.count() <= 128):
                 self.explode()
+                self.exploded = True
     
     def explode(self):
         for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:

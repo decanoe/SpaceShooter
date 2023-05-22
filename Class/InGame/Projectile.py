@@ -67,7 +67,8 @@ class Projectile(Collider, runner.Object):
         rotatedImage.set_alpha(int(255 * self.alive))
         self.screen.blit(rotatedImage, rect)
     def update(self, debug = False):
-        offset_frame: int = int(self.animation_speed * self.timeBirth) % self.animation_length
+        offset_frame: int = int(self.animation_speed * self.timeBirth)
+        offset_frame -= int(offset_frame / self.animation_length) * self.animation_length
 
         self.blitImage(self.sprites.subsurface(offset_frame * PROJECTILE_SIZE, 0, PROJECTILE_SIZE, PROJECTILE_SIZE))
     def updateMask(self):
