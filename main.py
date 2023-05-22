@@ -10,7 +10,7 @@ from Class.Vector import Vector
 from Class.InGame.EnemyShip import EnemyShip
 from Class.InGame.Ship import Ship
 import Class.InGame.ObjectRunner as runner
-import random, math, json
+import random, math
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -27,10 +27,12 @@ def update():
     screen.fill((0, 0, 0))
 
     for i in range(len(stars)):
-        x: int = int(stars[i][0] - WORLD.center_object.pos.x * stars[i][2]) % width
-        y: int = int(stars[i][1] - WORLD.center_object.pos.y * stars[i][2]) % height
+        x: int = int(stars[i][0] - WORLD.center_object.pos.x * stars[i][2])
+        x -= math.floor(x / width) * width
+        y: int = int(stars[i][1] - WORLD.center_object.pos.y * stars[i][2])
+        y -= math.floor(y / height) * height
 
-        pygame.draw.line(screen, (255, 255, 255), (x, y), (x, y))
+        pygame.draw.line(screen, (255 * (1 - stars[i][2]*stars[i][2]*stars[i][2]), 255 * stars[i][2], 255 * stars[i][2] * stars[i][2]), (x, y), (x, y))
     
     if (DEBUG_STATE):
         region = WORLD.getRegion(WORLD.center_object.pos)
