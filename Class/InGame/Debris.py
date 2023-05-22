@@ -39,11 +39,11 @@ class Debris(Collider, runner.Object):
     def canCollide(self, collider: Collider) -> bool:
         if (type(collider) == Debris or type(collider) == Projectile): return False
         return super().canCollide(collider)
-    def onCollide(self, collider: Collider, point: Vector):
+    def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         self.velocity /= self.mass
         self.mass = collider.mass
         self.velocity *= self.mass
-        super().onCollide(collider, point)
+        super().onCollide(collider, point, normal)
 
     def blitImage(self, image: pygame.Surface):
         rotatedImage: pygame.Surface = pygame.transform.rotozoom(image, math.degrees(self.direction.getAngle(Vector(0, -1))), SHIP_SQUARE_SIZE / 48)

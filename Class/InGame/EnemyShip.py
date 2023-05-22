@@ -84,10 +84,10 @@ class EnemyShip(Collider, runner.Object):
         
         EnemyShip(self.screen, self.World)
         
-    def onCollide(self, collider: Collider, point: Vector):
+    def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         if type(collider) == Debris:
             return
-        super().onCollide(collider, point)
+        super().onCollide(collider, point, normal)
 
         inSpritePoint: Vector = point - self.pos
         inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))
@@ -193,7 +193,6 @@ class EnemyShip(Collider, runner.Object):
 
             angle = direction.getAngle(Vector(0, 1))
             overlay = runner.SPRITE_LIB.subsurface((13*32, 0), (32, 32))
-            overlay = pygame.transform.scale(overlay, (80, 80))
             overlay = pygame.transform.rotate(overlay, math.degrees(angle))
             overlay.fill((255, 150, 10), special_flags=pygame.BLEND_RGBA_MULT)
             rect = overlay.get_rect(center = self.World.centerPositionTo(target_pos - direction.normalized() * 64).toTuple())

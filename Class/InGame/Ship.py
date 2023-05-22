@@ -100,12 +100,12 @@ class Ship(Collider, runner.Object):
             self.propulse(deltaTime, force = self.propulseForce(Vector(1, 0)), direction = Vector(1, 0))
         if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_q]:
             self.propulse(deltaTime, force = self.propulseForce(Vector(-1, 0)), direction = Vector(-1, 0))
-    def onCollide(self, collider: Collider, point: Vector):
+    def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         t = self.lastWallHit
 
         if (type(collider) == Debris):
             return
-        super().onCollide(collider, point)
+        super().onCollide(collider, point, normal)
 
         inSpritePoint: Vector = point - self.pos
         inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))

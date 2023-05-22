@@ -1,6 +1,6 @@
 from Class.InGame.Collider import Collider
 from Class.Vector import Vector
-import pygame
+import pygame, math
 
 SPRITE_LIB = pygame.image.load("./Sprites/Ship - parts.png")
 DEBRIS_LIFE: int = 25
@@ -57,6 +57,18 @@ class World:
         self.AddObject(self.center_object)
         self.center_object = center_object
 
+    def get_normal(mask1: pygame.Mask, mask2: pygame.Mask, offset: tuple[int, int]) -> Vector:
+        """
+        Calculate the normal and tangent vector between our object and other.
+        In general this gives the most realistic collissions, but depending on
+        the shapes of the colliding objects, it can also return problematic
+        results.
+        """
+        dx = (mask1.overlap_area(mask2, (offset[0] + 1, offset[1]))
+            -mask1.overlap_area(mask2, (offset[0] - 1, offset[1])))
+        dy = (mask1.overlap_area(mask2, (offset[0], offset[1] + 1))
+            -mask1.overlap_area(mask2, (offset[0], offset[1] - 1)))
+        return Vector(dx, dy).normalize()
     def UpdateCollision(self, c1: Object | Collider, c2: Object | Collider):
         if not(issubclass(type(c1), Collider)): return
                         
@@ -70,8 +82,10 @@ class World:
             point -= Vector.TupleToPos(c1.mask.get_rect()[2:]) / 2
             point += c1.pos
 
-            c1.onCollide(c2, point)
-            c2.onCollide(c1, point)
+            normal = World.get_normal(c1.mask, c2.mask, (rect2.left - rect1.left, rect2.top - rect1.top))
+
+            c1.onCollide(c2, point, normal)
+            c2.onCollide(c1, point, normal)
     def UpdateAllCollisionArround(self, c1: Collider, region1: tuple[int, int]):
         for region2 in [(region1[0] + x, region1[1] + y) for x in range(-1, 1) for y in range(-1, 2)]:
             if not(region2 in self.game_objects) or (region1[0] == region2[0] and region1[1] <= region2[1]):

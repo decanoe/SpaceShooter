@@ -26,22 +26,17 @@ class Collider:
         self.velocity = Vector(0, 0)
         self.last_frame_velocity = self.velocity
 
-    def getNormal(self, point: Vector, collider: Collider) -> Vector:
-        return (point - self.pos).normalized()
-    
     def canCollide(self, collider: Collider) -> bool:
         if (self.mask == None):
             return False
         if (self.lastObjectHit != None and self.lastWallHit < .25):
             return collider != self.lastObjectHit
         return True
-    def onCollide(self, collider: Collider, point: Vector):
+    def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         self.lastWallHit = 0
 
         if collider == None: return
         self.lastObjectHit = collider
-
-        normal: Vector = collider.getNormal(point, self)
         
         self.velocity -= normal * (
             2 * collider.mass * (self.velocity - collider.last_frame_velocity).dot(normal)

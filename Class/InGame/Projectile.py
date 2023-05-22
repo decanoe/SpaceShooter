@@ -43,8 +43,8 @@ class Projectile(Collider, runner.Object):
         self.World = World
         World.AddObject(self)
 
-    def onCollide(self, collider: Collider, point: Vector):
-        super().onCollide(collider, point)
+    def onCollide(self, collider: Collider, point: Vector, normal: Vector):
+        super().onCollide(collider, point, normal)
         self.direction = self.velocity.normalized()
         self.velocity *= 0.5
 
