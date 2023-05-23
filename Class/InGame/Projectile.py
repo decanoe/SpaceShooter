@@ -48,11 +48,7 @@ class Projectile(Collider, runner.Object):
         self.direction = self.velocity.normalized()
         self.velocity *= 0.5
 
-        if (type(collider).__name__ != "Wall"):
-            self.alive = 0
-        else:
-            self.alive = 0.99
-            self.updateMask()
+        self.alive = 0
     def canCollide(self, collider: Collider):
         if (self.alive != 1 or type(collider) == Projectile): return False
 

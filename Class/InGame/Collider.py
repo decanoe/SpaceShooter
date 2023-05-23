@@ -42,9 +42,9 @@ class Collider:
             2 * collider.mass * (self.velocity - collider.last_frame_velocity).dot(normal)
             / ((self.mass + collider.mass))
             )
-        # self.velocity *= 0.8
+        self.velocity *= 0.8
 
-        self.pos += normal * .1
+        self.pos += normal * 2
 
     def computeRotation(self, deltaTime: float):
         self.direction = self.direction.rotate(self.angle_velocity * deltaTime)

@@ -25,6 +25,7 @@ class Object:
 class World:
     center_object: Object = None
     game_objects: dict[tuple[int, int], list[Object]] = {}
+    global_effects: dict[str, bool|float|tuple[int, int]] = {}
 
     def __init__(self):
         pass
@@ -85,7 +86,7 @@ class World:
             normal = World.get_normal(c1.mask, c2.mask, (rect2.left - rect1.left, rect2.top - rect1.top))
 
             c1.onCollide(c2, point, normal)
-            c2.onCollide(c1, point, normal)
+            c2.onCollide(c1, point, normal * -1)
     def UpdateAllCollisionArround(self, c1: Collider, region1: tuple[int, int]):
         for region2 in [(region1[0] + x, region1[1] + y) for x in range(-1, 1) for y in range(-1, 2)]:
             if not(region2 in self.game_objects) or (region1[0] == region2[0] and region1[1] <= region2[1]):
@@ -115,7 +116,7 @@ class World:
 
                 # Update collision in close region
                 self.UpdateAllCollisionArround(c1, region1)
-    
+
     def UpdateAllPhysics(self, deltaTime: float, clearLagNeeded: float = 0):
         self.UpdateAllCollision()
 

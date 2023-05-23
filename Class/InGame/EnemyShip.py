@@ -156,19 +156,10 @@ class EnemyShip(Collider, runner.Object):
         if (debug and self.debug_target_pos != None):
             pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(self.debug_target_pos).toTuple())
     
-    def updateMask(self):
-        self.mask = pygame.mask.from_surface(
-            pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
-    def updatePhysics(self, deltaTime: float) -> bool:
-        self.velocity /= 1 + deltaTime * 0.5
-
-        Collider.updatePhysics(self, deltaTime)
-        self.updateMask()
-        
+    def aimPlayer(self, deltaTime: float):
         target_pos: Vector = self.World.center_object.pos
         dist = Vector.distance(self.pos, target_pos)
         direction: Vector = target_pos - self.pos
-        self.gun.reload(deltaTime)
 
         if dist < self.screen.get_height() * 0.75:
             timeToReach = dist / (self.gun.projectile_speed * 100)
@@ -181,8 +172,6 @@ class EnemyShip(Collider, runner.Object):
             if (timeToReach < 3 and abs(angle) < .025):
                 self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))
 
-            if (self.propulseCooldown > 0):
-                self.propulseCooldown -= deltaTime
             if Vector.distance(self.pos, target_pos) > 256:
                 self.propulse(deltaTime)
             elif Vector.distance(self.pos, target_pos) < 64:
@@ -197,6 +186,33 @@ class EnemyShip(Collider, runner.Object):
             overlay.fill((255, 150, 10), special_flags=pygame.BLEND_RGBA_MULT)
             rect = overlay.get_rect(center = self.World.centerPositionTo(target_pos - direction.normalized() * 64).toTuple())
             self.screen.blit(overlay, rect)
+    def fleeCoords(self, coord: Vector, deltaTime: float):
+        if Vector.sqrDistance(self.pos, coord) > 768 * 768:
+            return
+
+        angle = self.direction.getAngle(self.pos - coord)
+        self.angle_velocity = max(min(angle * 50, math.pi), -math.pi)
+    
+        if (abs(angle) < .025):
+            self.propulse(deltaTime)
+
+    def updateMask(self):
+        self.mask = pygame.mask.from_surface(
+            pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
+    def updatePhysics(self, deltaTime: float) -> bool:
+        self.velocity /= 1 + deltaTime * 0.5
+
+        Collider.updatePhysics(self, deltaTime)
+        self.updateMask()
+
+        self.gun.reload(deltaTime)
+        if (self.propulseCooldown > 0):
+            self.propulseCooldown -= deltaTime
+        
+        if not(self.World.global_effects.get("peace", None)):
+            self.aimPlayer(deltaTime)
+        else:
+            self.fleeCoords(Vector.TupleToPos(self.World.global_effects["peace"]), deltaTime)
 
         if (self.mask == None):
             return True

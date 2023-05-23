@@ -8,6 +8,7 @@ import pygame
 import Functions.Loader as loader
 from Class.Vector import Vector
 from Class.InGame.EnemyShip import EnemyShip
+from Class.InGame.Station import Station
 from Class.InGame.Ship import Ship
 import Class.InGame.ObjectRunner as runner
 import random, math
@@ -67,6 +68,7 @@ process: bool = True
 
 WORLD: runner.World = runner.World()
 ship: Ship = loader.loadPlayerShip(SAVE_SLOT, screen, WORLD)
+Station(screen, WORLD, Vector(1024, 0))
 for i in range(8):
     EnemyShip(screen, WORLD)
 
@@ -76,7 +78,8 @@ while process:
     WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
     WORLD.UpdateAllGraphics(debug = DEBUG_STATE)
 
-    if (DEBUG_STATE): Render_Text(str(int(clock.get_fps())), (255,0,0), (0,0))
+    if (DEBUG_STATE):
+        Render_Text(str(int(clock.get_fps())) + "   " + str(int(ship.pos.x)) + "/" + str(int(ship.pos.y)), (255,0,0), (0,0))
 
     events = pygame.event.get()
     ship.eventReactions(events, deltaTime)

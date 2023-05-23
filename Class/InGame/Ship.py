@@ -38,9 +38,6 @@ class Ship(Collider, runner.Object):
         self.damage_Effects = pygame.Surface((SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE), flags=pygame.SRCALPHA)
         self.damage_Effects.fill((0, 0, 0, 0))
 
-        self.damageSprite(Vector(0, 0), 64)
-        self.damageSprite(Vector(48, 48), 64)
-        
         self.World = World
         self.World.AddObject(self)
     def randomize(self):
@@ -71,7 +68,7 @@ class Ship(Collider, runner.Object):
         if (self.direction.dot(direction) > -0.25):
             return f
         else:
-            return f / 2
+            return f / 1.5
     def eventReactions(self, events: list[pygame.event.Event], deltaTime: float):
         self.gun.reload(deltaTime)
 
@@ -107,7 +104,6 @@ class Ship(Collider, runner.Object):
 
         if (type(collider) == Debris):
             return
-        super().onCollide(collider, point, normal)
 
         inSpritePoint: Vector = point - self.pos
         inSpritePoint = inSpritePoint.rotate(self.direction.getAngle(Vector(0, -1)))
@@ -120,6 +116,7 @@ class Ship(Collider, runner.Object):
                 self.explode()
                 self.exploded = True
         else:
+            super().onCollide(collider, point, normal)
             collisionStrength = (collider.last_frame_velocity * collider.mass - self.last_frame_velocity * self.mass).magnitude() / 200
             self.damageSprite(inSpritePoint, collisionStrength)
             if (not(self.exploded) and self.mask.count() <= 128):
