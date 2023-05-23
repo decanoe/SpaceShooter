@@ -1,7 +1,7 @@
 from Functions.ImageModifier import loadSprite, randomPaletteFor
-from Class.Vector import Vector
-from Class.InGame.Collider import Collider
-import Class.InGame.ObjectRunner as runner
+from Class.Utilities.Vector import Vector
+from Class.Utilities.Collider import Collider
+import Class.Utilities.ObjectRunner as runner
 from Class.InGame.Gun import Gun
 from Class.InGame.Debris import Debris
 import pygame, math, random, json, os
@@ -72,8 +72,9 @@ class EnemyShip(Collider, runner.Object):
                 gridSize = 32,
                 colors = self.parts[key[1] + "_colors"]
             )
-            xsplit = [0, random.randint(32 // 4, 32 * 3 // 4), 32]
-            ysplit = [0, random.randint(32 // 4, 32 * 3 // 4), 32]
+            img = pygame.transform.scale(img, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+            xsplit = [0, random.randint(SHIP_SQUARE_SIZE // 4, SHIP_SQUARE_SIZE * 3 // 4), SHIP_SQUARE_SIZE]
+            ysplit = [0, random.randint(SHIP_SQUARE_SIZE // 4, SHIP_SQUARE_SIZE * 3 // 4), SHIP_SQUARE_SIZE]
             
             for x in range(2):
                 for y in range(2):
@@ -176,25 +177,24 @@ class EnemyShip(Collider, runner.Object):
                 self.propulse(deltaTime)
             elif Vector.distance(self.pos, target_pos) < 64:
                 self.propulse(deltaTime, self.propulseForce(self.direction * -1), self.direction * -1)
-        else:
-            line = (self.World.centerPositionTo(target_pos).toTuple(), self.World.centerPositionTo(self.pos).toTuple())
-            self.screen.get_rect().clipline(line)
+        # else:
+        #     line = (self.World.centerPositionTo(target_pos).toTuple(), self.World.centerPositionTo(self.pos).toTuple())
+        #     self.screen.get_rect().clipline(line)
 
-            angle = direction.getAngle(Vector(0, 1))
-            overlay = runner.SPRITE_LIB.subsurface((13*32, 0), (32, 32))
-            overlay = pygame.transform.rotate(overlay, math.degrees(angle))
-            overlay.fill((255, 150, 10), special_flags=pygame.BLEND_RGBA_MULT)
-            rect = overlay.get_rect(center = self.World.centerPositionTo(target_pos - direction.normalized() * 64).toTuple())
-            self.screen.blit(overlay, rect)
+        #     angle = direction.getAngle(Vector(0, 1))
+        #     overlay = runner.SPRITE_LIB.subsurface((13*32, 0), (32, 32))
+        #     overlay = pygame.transform.rotate(overlay, math.degrees(angle))
+        #     overlay.fill((255, 150, 10), special_flags=pygame.BLEND_RGBA_MULT)
+        #     rect = overlay.get_rect(center = self.World.centerPositionTo(target_pos - direction.normalized() * 64).toTuple())
+        #     self.screen.blit(overlay, rect)
     def fleeCoords(self, coord: Vector, deltaTime: float):
-        if Vector.sqrDistance(self.pos, coord) > 768 * 768:
-            return
-
         angle = self.direction.getAngle(self.pos - coord)
         self.angle_velocity = max(min(angle * 50, math.pi), -math.pi)
     
         if (abs(angle) < .025):
             self.propulse(deltaTime)
+        else:
+            self.propulse(deltaTime, self.propulseForce((self.pos - coord).normalize()), (self.pos - coord).normalize())
 
     def updateMask(self):
         self.mask = pygame.mask.from_surface(
@@ -209,10 +209,16 @@ class EnemyShip(Collider, runner.Object):
         if (self.propulseCooldown > 0):
             self.propulseCooldown -= deltaTime
         
-        if not(self.World.global_effects.get("peace", None)):
+        if self.World.global_effects.get("bastion", (None, None, self.faction))[2] == self.faction:
             self.aimPlayer(deltaTime)
         else:
-            self.fleeCoords(Vector.TupleToPos(self.World.global_effects["peace"]), deltaTime)
+            minDist = self.World.global_effects["bastion"][1] + 32
+            coord = Vector.TupleToPos(self.World.global_effects["bastion"][0])
+            if Vector.sqrDistance(self.pos, coord) < minDist * minDist:
+                self.fleeCoords(coord, deltaTime)
+            elif Vector.sqrDistance(self.World.center_object.pos, coord) > minDist * minDist:
+                self.aimPlayer(deltaTime)
+
 
         if (self.mask == None):
             return True

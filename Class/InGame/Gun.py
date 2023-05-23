@@ -1,6 +1,6 @@
-from Class.Vector import Vector
+from Class.Utilities.Vector import Vector
 from Class.InGame.Projectile import Projectile
-import Class.InGame.ObjectRunner as runner
+import Class.Utilities.ObjectRunner as runner
 from Functions.ImageModifier import loadSprite
 import pygame, math, random, json
 

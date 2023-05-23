@@ -1,6 +1,6 @@
-from Class.Vector import Vector
-from Class.InGame.Collider import Collider
-import Class.InGame.ObjectRunner as runner
+from Class.Utilities.Vector import Vector
+from Class.Utilities.Collider import Collider
+import Class.Utilities.ObjectRunner as runner
 from Class.InGame.Gun import Gun
 from Class.InGame.Debris import Debris
 from Functions.ImageModifier import loadSprite, randomPaletteFor
@@ -131,11 +131,12 @@ class Ship(Collider, runner.Object):
                 gridSize = 32,
                 colors = self.parts[key[1] + "_colors"]
             )
-            xsplit = [0, random.randint(32 / 4, 32 / 2), random.randint(32 / 2, 32 * 3 / 4), 32]
-            ysplit = [0, random.randint(32 / 4, 32 / 2), random.randint(32 / 2, 32 * 3 / 4), 32]
+            img = pygame.transform.scale(img, (SHIP_SQUARE_SIZE, SHIP_SQUARE_SIZE))
+            xsplit = [0, random.randint(SHIP_SQUARE_SIZE // 4, SHIP_SQUARE_SIZE * 3 // 4), SHIP_SQUARE_SIZE]
+            ysplit = [0, random.randint(SHIP_SQUARE_SIZE // 4, SHIP_SQUARE_SIZE * 3 // 4), SHIP_SQUARE_SIZE]
             
-            for x in range(3):
-                for y in range(3):
+            for x in range(2):
+                for y in range(2):
                     Debris(self.screen, self.World, self.pos, img.subsurface(
                         xsplit[x], ysplit[y],
                         xsplit[x + 1] - xsplit[x], ysplit[y + 1] - ysplit[y]
@@ -231,5 +232,10 @@ class Ship(Collider, runner.Object):
         mouse_pos -= Vector.TupleToPos(self.screen.get_rect().size) / 2
         angle = self.direction.getAngle(mouse_pos)
         self.angle_velocity = angle * 5
+
+        if self.World.global_effects.get("repair", None):
+            area = self.World.global_effects["repair"][1]
+            if Vector.sqrDistance(self.pos, Vector.TupleToPos(self.World.global_effects["repair"][0])) < area * area:
+                self.repair(self.World.global_effects["repair"][2], deltaTime)
         
         return True

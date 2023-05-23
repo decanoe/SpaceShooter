@@ -1,6 +1,6 @@
-from Class.Vector import Vector
-from Class.InGame.Collider import Collider
-import Class.InGame.ObjectRunner as runner
+from Class.Utilities.Vector import Vector
+from Class.Utilities.Collider import Collider
+import Class.Utilities.ObjectRunner as runner
 from Class.InGame.Projectile import Projectile
 import pygame
 import math
@@ -46,13 +46,13 @@ class Debris(Collider, runner.Object):
         super().onCollide(collider, point, normal)
 
     def blitImage(self, image: pygame.Surface):
-        rotatedImage: pygame.Surface = pygame.transform.rotozoom(image, math.degrees(self.direction.getAngle(Vector(0, -1))), SHIP_SQUARE_SIZE / 48)
+        rotatedImage: pygame.Surface = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
         rotatedImage.set_alpha(int(255 * min(1, self.alive / 10)))
         rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
     def updateMask(self):
         self.mask = pygame.mask.from_surface(
-            pygame.transform.rotozoom(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1))), 1.5))
+            pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
     def update(self, debug = False):
         self.blitImage(self.sprite)
     def updatePhysics(self, deltaTime: float) -> bool:

@@ -1,5 +1,5 @@
 from Class.InGame.Ship import Ship
-from Class.Vector import Vector
+from Class.Utilities.Vector import Vector
 import json
 
 def loadPlayerShip(slot: int, screen, world):
