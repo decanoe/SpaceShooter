@@ -19,6 +19,7 @@ class EnemyShip(Collider, runner.Object):
     parts: dict
     sprite: pygame.Surface
     base_sprite: pygame.Surface
+    explosion_time: float = -1
 
     debug_target_pos: Vector = None
 
@@ -65,6 +66,14 @@ class EnemyShip(Collider, runner.Object):
             return f / 2
     
     def explode(self):
+        self.explosion_time = 0
+        self.velocity *= 0
+        self.angle_velocity = 0
+
+        p = Vector.TupleToPos(self.mask.centroid())
+        p -= Vector.TupleToPos(self.mask.get_size()) / 2
+        self.pos += p
+
         for key in [("Wings/", "wings"), ("Engines/", "engine"), ("Cockpit/", "cockpit")]:
             img = loadSprite(
                 json.load(open("./Data/" + key[0] + self.parts[key[1]] + ".json", 'r')),
@@ -84,7 +93,11 @@ class EnemyShip(Collider, runner.Object):
                     ))
         
         EnemyShip(self.screen, self.World)
-        
+    
+    def canCollide(self, collider: Collider) -> bool:
+        if self.explosion_time != -1:
+            return False
+        return super().canCollide(collider)
     def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         if type(collider) == Debris:
             return
@@ -147,15 +160,20 @@ class EnemyShip(Collider, runner.Object):
         rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
     def update(self, debug = False):
-        
-        # rect: pygame.Rect = self.mask.to_surface().get_rect(center = self.pos.toTuple())
-        # self.screen.blit(self.mask.to_surface(), rect)
+        if (self.explosion_time == -1):
+            self.blitImage(self.sprite)
+            self.gun.update(self)
 
-        self.blitImage(self.sprite)
-        self.gun.update(self)
+            if (debug and self.debug_target_pos != None):
+                pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(self.debug_target_pos).toTuple())
+        else:
+            offset_frame: int = int(18 * self.explosion_time)
+            offset_frame = min(17, offset_frame)
 
-        if (debug and self.debug_target_pos != None):
-            pygame.draw.line(self.screen, (255, 0, 0), self.World.center_object.centerOnPos(self.pos).toTuple(), self.World.center_object.centerOnPos(self.debug_target_pos).toTuple())
+            image: pygame.Surface = runner.EXPLOSION_LIB.subsurface((0, offset_frame * 64), (64, 64))
+            image = pygame.transform.rotozoom(image, math.degrees(self.direction.getAngle(Vector(0, -1))), 3)
+            rect: pygame.Rect = image.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
+            self.screen.blit(image, rect)
     
     def aimPlayer(self, deltaTime: float):
         target_pos: Vector = self.World.center_object.pos
@@ -200,6 +218,10 @@ class EnemyShip(Collider, runner.Object):
         self.mask = pygame.mask.from_surface(
             pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
     def updatePhysics(self, deltaTime: float) -> bool:
+        if (self.explosion_time != -1):
+            self.explosion_time += deltaTime * 2
+            return self.explosion_time <= 1
+
         self.velocity /= 1 + deltaTime * 0.5
 
         Collider.updatePhysics(self, deltaTime)
@@ -220,7 +242,4 @@ class EnemyShip(Collider, runner.Object):
                 self.aimPlayer(deltaTime)
 
 
-        if (self.mask == None):
-            return True
-        else:
-            return self.mask.count() > 1024
+        return True
