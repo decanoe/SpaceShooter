@@ -57,9 +57,12 @@ class Asteroid(Collider, runner.Object):
             self.damageSprite(inSpritePoint, collisionStrength)
 
         if (self.mask.count() <= (self.size - 1) * (ASTEROID_SIZE * ASTEROID_SIZE) / 16):
-            self.size = 1 + self.mask.count() / (ASTEROID_SIZE * ASTEROID_SIZE) * 20
+            self.size = 1 + self.mask.count() / (ASTEROID_SIZE * ASTEROID_SIZE) * 10
             self.explosion_time = 0
-            self.direction = Vector.AngleToVector(random.random() * math.pi * 2)
+            if (type(collider).__name__ == "Projectile"):
+                self.direction = (self.pos - (collider.pos - collider.velocity)).normalize()
+            else:
+                self.direction = normal
             self.velocity *= 0
 
             p = Vector.TupleToPos(self.mask.centroid())
@@ -80,19 +83,20 @@ class Asteroid(Collider, runner.Object):
         self.sprite.blit(cutout, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
         self.mask = pygame.mask.from_surface(self.sprite)
     def blitImage(self, image: pygame.Surface):
-        rotatedImage: pygame.Surface = pygame.transform.rotozoom(image, math.degrees(self.direction.getAngle(Vector(0, -1))), self.size)
+        rotatedImage: pygame.Surface = pygame.transform.rotozoom(image, math.degrees(self.direction.getAngle(Vector(0, 1))), self.size)
         rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
         self.screen.blit(rotatedImage, rect)
     def update(self, debug = False):
         if (self.explosion_time == -1):
             self.screen.blit(self.sprite, self.sprite.get_rect(center = self.World.centerPositionTo(self.pos).toTuple()))
         else:
-            offset_frame: int = int(18 * self.explosion_time)
-            offset_frame = min(17, offset_frame)
-            self.blitImage(runner.EXPLOSION_LIB.subsurface((192, offset_frame * 64), (64, 64)))
+            offset_frame: int = int(16 * self.explosion_time)
+            offset_frame = min(15, offset_frame)
+            self.blitImage(runner.EXPLOSION_LIB.subsurface((64, offset_frame * 64), (64, 64)))
 
     def updatePhysics(self, deltaTime: float) -> bool:
         super().updatePhysics(deltaTime)
+        self.velocity /= 1 + deltaTime / 4
 
         if (self.explosion_time != -1):
             self.explosion_time += deltaTime * 2
