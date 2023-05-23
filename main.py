@@ -4,23 +4,29 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 # ========================================
 
-import pygame
-import Functions.Loader as loader
-from Class.Vector import Vector
-from Class.InGame.EnemyShip import EnemyShip
-from Class.InGame.Station import Station
-from Class.InGame.Ship import Ship
-import Class.InGame.ObjectRunner as runner
-import random, math
-
-pygame.init()
-clock = pygame.time.Clock()
-
 #résolution de la fenêtre
 size = width, height = 1024, 768
 INNER_PART_SIZE = 0.4
 SAVE_SLOT = 1
 DEBUG_STATE = False
+
+import pygame
+
+pygame.init()
+#création de l'interface graphique
+screen: pygame.Surface = pygame.display.set_mode(size)
+pygame.display.set_caption('OmegaRace2')
+process: bool = True
+clock = pygame.time.Clock()
+
+import Functions.Loader as loader
+from Class.Utilities.Vector import Vector
+from Class.InGame.EnemyShip import EnemyShip
+from Class.InGame.Asteroid import Asteroid
+from Class.InGame.Station import Station
+from Class.InGame.Ship import Ship
+import Class.Utilities.ObjectRunner as runner
+import random, math, time
 
 stars: list[tuple[int, int, float]] = [(round(random.random() * width), round(random.random() * height), 1 - random.random() * random.random()) for i in range(128)]
 
@@ -61,22 +67,26 @@ def Render_Text(string, color, where):
     text = font.render(string, 1, pygame.Color(color))
     screen.blit(text, where)
 
-#création de l'interface graphique
-screen: pygame.Surface = pygame.display.set_mode(size)
-pygame.display.set_caption('OmegaRace2')
-process: bool = True
-
 WORLD: runner.World = runner.World()
 ship: Ship = loader.loadPlayerShip(SAVE_SLOT, screen, WORLD)
 Station(screen, WORLD, Vector(1024, 0))
-for i in range(8):
-    EnemyShip(screen, WORLD)
+# for i in range(5):
+#     EnemyShip(screen, WORLD)
+for i in range(32):
+    Asteroid(screen, WORLD, Vector.AngleToVector(random.random() * math.pi * 2) * random.random() * 512)
 
 while process:
     deltaTime: float = clock.tick() / 1000.
     update()
-    WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
+    
+    text = WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
+    start = time.perf_counter()
     WORLD.UpdateAllGraphics(debug = DEBUG_STATE)
+    finish = time.perf_counter()
+    for i in range(len(text.split("\n"))):
+        Render_Text(text.split("\n")[i], (255,0,0), (0, i * 16 + 16))
+    Render_Text(f"graphics : {round(finish-start, 3)}", (255,0,0), (0, 16 * 5))
+
 
     if (DEBUG_STATE):
         Render_Text(str(int(clock.get_fps())) + "   " + str(int(ship.pos.x)) + "/" + str(int(ship.pos.y)), (255,0,0), (0,0))
@@ -100,5 +110,4 @@ while process:
                 DEBUG_STATE = not(DEBUG_STATE)
     
     pygame.display.update()
-
 pygame.quit()
