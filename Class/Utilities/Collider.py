@@ -44,12 +44,26 @@ class Collider:
             )
         self.velocity *= 0.8
 
+        center: Vector = self.pos
+        if (self.mask != None):
+            center += Vector.TupleToPos(self.mask.centroid()) - Vector.TupleToPos(self.mask.get_size()) / 2
+
+        movement = collider.last_frame_velocity / collider.mass * 0.00001
+        if hasattr(collider, "explodeStrength"):
+            movement *= max(1, collider.explodeStrength - 6)
+        
+        spinForce = (point - center).getAngle(point - center + movement)
+        self.angle_velocity += spinForce * 100000 * collider.mass / self.mass
+        
+        if hasattr(collider, "explodeStrength"):
+            collider.velocity += (center - point).normalize() * collider.explodeStrength * collider.mass
+
         self.pos += normal * 2
 
     def computeRotation(self, deltaTime: float):
-        self.direction = self.direction.rotate(self.angle_velocity * deltaTime)
+        self.direction = self.direction.rotate(self.angle_velocity * deltaTime / self.mass)
 
-        self.angle_velocity *= 1 - deltaTime * 2
+        self.angle_velocity /= 1 + deltaTime
     
     def updatePhysics(self, deltaTime: float) -> bool:
         self.computeRotation(deltaTime)

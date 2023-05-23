@@ -7,6 +7,7 @@ from Class.InGame.Debris import Debris
 import pygame, math, random, json, os
 
 SHIP_SQUARE_SIZE = 64
+COLLISION_DISABLE_TIME = 1
 
 class EnemyShip(Collider, runner.Object):
     # =============================================
@@ -54,7 +55,7 @@ class EnemyShip(Collider, runner.Object):
         self.World.AddObject(self)
 
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
-        if (self.timeSinceWallHit() >= 0.4):
+        if (self.timeSinceWallHit() >= COLLISION_DISABLE_TIME):
             if (direction == None):
                 direction = self.direction
             self.velocity += direction * force * (1 + self.mass) * deltaTime * 40
@@ -99,6 +100,8 @@ class EnemyShip(Collider, runner.Object):
             return False
         return super().canCollide(collider)
     def onCollide(self, collider: Collider, point: Vector, normal: Vector):
+        t = self.lastWallHit
+
         if type(collider) == Debris:
             return
         super().onCollide(collider, point, normal)
@@ -108,6 +111,7 @@ class EnemyShip(Collider, runner.Object):
         inSpritePoint += Vector(self.sprite.get_width(), self.sprite.get_height()) / 2
 
         if (type(collider).__name__ == "Projectile"):
+            self.lastWallHit = t
             self.damageSprite(inSpritePoint, collider.explodeStrength)
             if (self.mask.count() <= 1024):
                 self.explode()
@@ -231,15 +235,16 @@ class EnemyShip(Collider, runner.Object):
         if (self.propulseCooldown > 0):
             self.propulseCooldown -= deltaTime
         
-        if self.World.global_effects.get("bastion", (None, None, self.faction))[2] == self.faction:
-            self.aimPlayer(deltaTime)
-        else:
-            minDist = self.World.global_effects["bastion"][1] + 32
-            coord = Vector.TupleToPos(self.World.global_effects["bastion"][0])
-            if Vector.sqrDistance(self.pos, coord) < minDist * minDist:
-                self.fleeCoords(coord, deltaTime)
-            elif Vector.sqrDistance(self.World.center_object.pos, coord) > minDist * minDist:
+        if (self.timeSinceWallHit() >= COLLISION_DISABLE_TIME):
+            if self.World.global_effects.get("bastion", (None, None, self.faction))[2] == self.faction:
                 self.aimPlayer(deltaTime)
+            else:
+                minDist = self.World.global_effects["bastion"][1] + 32
+                coord = Vector.TupleToPos(self.World.global_effects["bastion"][0])
+                if Vector.sqrDistance(self.pos, coord) < minDist * minDist:
+                    self.fleeCoords(coord, deltaTime)
+                elif Vector.sqrDistance(self.World.center_object.pos, coord) > minDist * minDist:
+                    self.aimPlayer(deltaTime)
 
 
         return True

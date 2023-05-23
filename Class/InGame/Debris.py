@@ -43,6 +43,7 @@ class Debris(Collider, runner.Object):
         self.velocity /= self.mass
         self.mass = collider.mass
         self.velocity *= self.mass
+        self.angle_velocity *= 0.1
         super().onCollide(collider, point, normal)
 
     def blitImage(self, image: pygame.Surface):

@@ -8,6 +8,7 @@ from Functions.ImageModifier import loadSprite, randomPaletteFor
 import pygame, math, random, json, os
 
 SHIP_SQUARE_SIZE = 64
+COLLISION_DISABLE_TIME = .75
 
 class Ship(Collider, runner.Object):
     # =============================================
@@ -58,7 +59,7 @@ class Ship(Collider, runner.Object):
         self.exploded = False
 
     def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
-        if (self.timeSinceWallHit() >= 0.4):
+        if (self.timeSinceWallHit() >= COLLISION_DISABLE_TIME):
             if (direction == None):
                 direction = self.direction
             self.velocity += direction * force * (1 + self.mass) * deltaTime * 45
@@ -220,7 +221,6 @@ class Ship(Collider, runner.Object):
         rotatedImage: pygame.Surface = pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1))))
         self.mask = pygame.mask.from_surface(rotatedImage)
     def updatePhysics(self, deltaTime: float) -> bool:
-        self.angle_velocity = max(min(self.angle_velocity, math.pi), -math.pi)
         self.velocity /= 1 + deltaTime * 0.75
         
         Collider.updatePhysics(self, deltaTime)
@@ -228,10 +228,11 @@ class Ship(Collider, runner.Object):
         
         self.damage_Effects.fill((0, 0, 0, 255 * deltaTime), special_flags=pygame.BLEND_RGBA_SUB)
         
-        mouse_pos = Vector.TupleToPos(pygame.mouse.get_pos())
-        mouse_pos -= Vector.TupleToPos(self.screen.get_rect().size) / 2
-        angle = self.direction.getAngle(mouse_pos)
-        self.angle_velocity = angle * 5
+        if (self.timeSinceWallHit() >= COLLISION_DISABLE_TIME):
+            mouse_pos = Vector.TupleToPos(pygame.mouse.get_pos())
+            mouse_pos -= Vector.TupleToPos(self.screen.get_rect().size) / 2
+            angle = self.direction.getAngle(mouse_pos)
+            self.angle_velocity = angle * 5
 
         if self.World.global_effects.get("repair", None):
             area = self.World.global_effects["repair"][1]
