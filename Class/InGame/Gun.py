@@ -25,6 +25,7 @@ class Gun():
     projectile_strength: float = 5
     projectile_sprites: pygame.Surface = None
     projectile_animation_length: pygame.Surface = None
+    projectile_animation_speed: float = 1
 
     currentCooldown: float = 0
     World: runner.World
@@ -71,6 +72,7 @@ class Gun():
             pData = data.get('projectile', {})
             self.projectile_speed = pData.get('speed', 3)
             self.projectile_strength = pData.get('strength', 5)
+            self.projectile_animation_speed = pData.get('animation_speed', 5)
 
             self.resetSprites(data)
 
@@ -93,6 +95,7 @@ class Gun():
                             direction = direction,
                             sprites = self.projectile_sprites,
                             animation_length = self.projectile_animation_length,
+                            animation_speed = self.projectile_animation_speed,
                             strength = self.projectile_strength,
                             speed = self.projectile_speed)
             rotation: float = random.random() - 0.5

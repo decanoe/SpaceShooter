@@ -2,8 +2,7 @@ from __future__ import annotations
 from Class.Utilities.Vector import Vector
 from Class.Utilities.Collider import Collider
 import Class.Utilities.ObjectRunner as runner
-import pygame
-import math
+import pygame, math, random
 
 PROJECTILE_SIZE = 32
 
@@ -13,7 +12,7 @@ class Projectile(Collider, runner.Object):
     alive: float = 1
     World: runner.World
     faction: str = "neutral"
-    timeBirth: int = 0
+    timeBirth: float = 0.
     explodeStrength: int = 0
     speed: float
     sprites: pygame.Surface
@@ -32,6 +31,7 @@ class Projectile(Collider, runner.Object):
         self.sprites = sprites
         self.animation_length = animation_length
         self.animation_speed = animation_speed
+        self.timeBirth = random.random() * animation_length
 
         super().__init__(direction, pos)
         self.mass = 0.1
@@ -64,7 +64,7 @@ class Projectile(Collider, runner.Object):
         self.screen.blit(rotatedImage, rect)
     def update(self, debug = False):
         offset_frame: int = int(self.animation_speed * self.timeBirth)
-        offset_frame -= int(offset_frame / self.animation_length) * self.animation_length
+        offset_frame -= offset_frame // self.animation_length * self.animation_length
 
         self.blitImage(self.sprites.subsurface(offset_frame * PROJECTILE_SIZE, 0, PROJECTILE_SIZE, PROJECTILE_SIZE))
     def updateMask(self):
