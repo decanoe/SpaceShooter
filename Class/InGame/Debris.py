@@ -30,8 +30,8 @@ class Debris(Collider, runner.Object):
         self.angle_velocity = (random.random() - 0.5) * 2
         self.pos += self.velocity / 10
 
-        self.sprite = img
-        self.mask = pygame.mask.from_surface(img)
+        self.sprite = pygame.transform.scale_by(img, 0.75)
+        self.mask = pygame.mask.from_surface(self.sprite)
         
         World.AddObject(self)
         self.World = World

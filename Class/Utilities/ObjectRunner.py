@@ -4,6 +4,7 @@ import pygame, math, time
 
 
 SPRITE_LIB = pygame.image.load("./Sprites/Ship - parts.png").convert_alpha()
+EXPLOSION_LIB = pygame.image.load("./Sprites/explosions.png").convert_alpha()
 DEBRIS_LIFE: int = 25
 REGION_SIZE: int = 256
 LOAD_RADIUS: int = 6
@@ -166,7 +167,7 @@ class World:
     def UpdateAllGraphics(self, debug = False):
         centerRegion = self.getRegion(self.center_object.pos)
         
-        for region in [(centerRegion[0] + x, centerRegion[1] + y) for x in range(-2, 3) for y in range(-2, 3)]:
+        for region in [(centerRegion[0] + x, centerRegion[1] + y) for x in range(-3, 4) for y in range(-3, 4)]:
             if not(region in self.game_objects):
                 continue
 

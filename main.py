@@ -70,8 +70,8 @@ def Render_Text(string, color, where):
 WORLD: runner.World = runner.World()
 ship: Ship = loader.loadPlayerShip(SAVE_SLOT, screen, WORLD)
 Station(screen, WORLD, Vector(1024, 0))
-# for i in range(5):
-#     EnemyShip(screen, WORLD)
+for i in range(5):
+    EnemyShip(screen, WORLD)
 for i in range(32):
     Asteroid(screen, WORLD, Vector.AngleToVector(random.random() * math.pi * 2) * random.random() * 512)
 
