@@ -136,7 +136,7 @@ class EnemyShip(Collider, runner.Object):
         cutout: pygame.Surface = pygame.mask.from_surface(self.sprite, 215).to_surface(setcolor=(255, 255, 255, 255), unsetcolor=(0, 0, 0, 0))
 
         edgeSprite: pygame.Surface = runner.SPRITE_LIB.subsurface((12*32, 0), (32, 32))
-        edgeSprite = pygame.transform.rotozoom(edgeSprite, random.random() * 360 * 0, float(strength) / 11)
+        edgeSprite = pygame.transform.rotozoom(edgeSprite, random.random() * 360 * 0, float(strength) / 8)
         rect: pygame.Rect = edgeSprite.get_rect(center = point.toTuple())
         self.sprite.blit(edgeSprite, rect)
 
