@@ -39,7 +39,7 @@ def update():
         y: int = int(stars[i][1] - WORLD.center_object.pos.y * stars[i][2])
         y -= math.floor(y / height) * height
 
-        pygame.draw.circle(screen, (255 * (1 - stars[i][2]*stars[i][2]*stars[i][2]), 255 * stars[i][2], 255 * stars[i][2] * stars[i][2]), (x, y), 1)
+        pygame.draw.circle(screen, (200 * (1 - stars[i][2]*stars[i][2]*stars[i][2]), 55 + 150 * stars[i][2], 55 + 150 * stars[i][2] * stars[i][2]), (x, y), 1)
     
     if (DEBUG_STATE):
         region = WORLD.getRegion(WORLD.center_object.pos)
