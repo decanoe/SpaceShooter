@@ -116,3 +116,8 @@ class Vector:
     def mod(self, value: int) -> Vector:
         '''return the vector with components modulo <value>'''
         return Vector(self.x % value, self.y % value)
+    
+    def changeBase(self, newUp: Vector) -> Vector:
+        '''return the vector with positive y as newUp'''
+        newRight = newUp.normal()
+        return Vector(self.x * newRight.x + self.y * newRight.y, self.x * newUp.x + self.y * newUp.y)

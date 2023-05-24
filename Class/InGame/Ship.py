@@ -63,13 +63,15 @@ class Ship(Collider, runner.Object):
             if (direction == None):
                 direction = self.direction
             self.velocity += direction * force * (1 + self.mass) * deltaTime * 45
+            
+            alignedDirection = direction.changeBase(self.direction)
+            axes: list[Vector] = [
+                self.direction * alignedDirection.y,
+                self.direction.normal() * alignedDirection.x
+            ]
+            for ax in axes:
+                pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + ax * 50).toTuple())
 
-    def propulseForce(self, direction) -> float:
-        f: float = 2 + 4 * abs(self.direction.dot(direction))
-        if (self.direction.dot(direction) > -0.25):
-            return f
-        else:
-            return f / 1.5
     def eventReactions(self, events: list[pygame.event.Event], deltaTime: float):
         self.gun.reload(deltaTime)
 
@@ -93,13 +95,13 @@ class Ship(Collider, runner.Object):
         if pygame.mouse.get_pressed()[2]:
             self.gun.fire(self, spread=0, focal=256 + Vector.distance(Vector.TupleToPos(pygame.mouse.get_pos()), self.World.centerPositionTo(self.pos)))
         if keys_pressed[pygame.K_z] or keys_pressed[pygame.K_UP]:
-            self.propulse(deltaTime, force = self.propulseForce(Vector(0, -1)), direction = Vector(0, -1))
+            self.propulse(deltaTime, direction = Vector(0, -1))
         if keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
-            self.propulse(deltaTime, force = self.propulseForce(Vector(0, 1)), direction = Vector(0, 1))
+            self.propulse(deltaTime, direction = Vector(0, 1))
         if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]:
-            self.propulse(deltaTime, force = self.propulseForce(Vector(1, 0)), direction = Vector(1, 0))
+            self.propulse(deltaTime, direction = Vector(1, 0))
         if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_q]:
-            self.propulse(deltaTime, force = self.propulseForce(Vector(-1, 0)), direction = Vector(-1, 0))
+            self.propulse(deltaTime, direction = Vector(-1, 0))
     def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         t = self.lastWallHit
 
