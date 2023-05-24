@@ -12,7 +12,7 @@ class Collider:
     mass: float = 1
     last_frame_velocity: Vector
     angle_velocity: float = 0
-    lastWallHit: float = 0
+    lastWallHit: float = 32
 
     lastObjectHit = None
 

@@ -247,7 +247,7 @@ class EnemyShip(Collider, runner.Object):
                         self.fleeCoords(coord, deltaTime)
                     else:
                         self.aimPlayer(deltaTime)
-                elif Vector.sqrDistance(self.pos, coord) < minDist * minDist * 2:
+                elif Vector.sqrDistance(self.pos, coord) < minDist * minDist * 4:
                     self.fleeCoords(coord, deltaTime)
 
 

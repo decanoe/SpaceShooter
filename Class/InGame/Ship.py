@@ -74,9 +74,9 @@ class Ship(Collider, runner.Object):
             self.velocity += self.direction * min(0, direction.y) * self.mass * deltaTime * 128
             self.velocity += self.direction.normal() * direction.x * self.mass * deltaTime * 200
             
-            pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction.normal() * direction.x * -64).toTuple())
-            pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction * direction.y * -64).toTuple())
-            pygame.draw.line(self.screen, (0, 255, 0), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction * counter.y * -64).toTuple())
+            # pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction.normal() * direction.x * -64).toTuple())
+            # pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction * direction.y * -64).toTuple())
+            # pygame.draw.line(self.screen, (0, 255, 0), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction * counter.y * -64).toTuple())
 
     def eventReactions(self, events: list[pygame.event.Event], deltaTime: float):
         self.gun.reload(deltaTime)
@@ -84,7 +84,8 @@ class Ship(Collider, runner.Object):
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_KP_5:
-                    self.randomize()
+                    if pygame.mask.from_surface(self.sprite).count() == pygame.mask.from_surface(self.base_sprite).count():
+                        self.randomize()
                 if event.key == pygame.K_KP_9:
                     self.explode()
             if event.type == pygame.MOUSEBUTTONDOWN:                                      #Use mouse button
@@ -94,7 +95,7 @@ class Ship(Collider, runner.Object):
         keys_pressed = pygame.key.get_pressed()
 
         if keys_pressed[pygame.K_r]:
-            self.repair(50, deltaTime)
+            self.repair(18, deltaTime)
         if pygame.mouse.get_pressed()[2]:
             self.gun.fire(self, spread=0, focal=256 + Vector.distance(Vector.TupleToPos(pygame.mouse.get_pos()), self.World.centerPositionTo(self.pos)))
 
@@ -222,6 +223,7 @@ class Ship(Collider, runner.Object):
         self.screen.blit(rotatedImage, rect)
         # self.screen.blit(self.mask.to_surface(), rect)
     def update(self, debug = False):
+        pygame.draw.line(self.screen, (0, 255, 50), self.World.centerPositionTo(Vector(0, 0)).toTuple(), self.World.centerPositionTo(self.pos).toTuple())
         self.blitImage(self.sprite)
         self.blitImage(self.damage_Effects)
         self.gun.update(self)

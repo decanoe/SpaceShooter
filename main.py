@@ -100,7 +100,7 @@ while process:
         Render_Text(str(int(clock.get_fps())) + "   " + str(int(ship.pos.x)) + "/" + str(int(ship.pos.y)), (255,0,0), (0,0))
 
     events = pygame.event.get()
-    if (ship.exploded):
+    if not(ship.exploded):
         ship.eventReactions(events, deltaTime)
 
     # Continuous key press

@@ -49,7 +49,7 @@ class Station(Collider, runner.Object):
         self.screen.blit(self.sprite, rect)
 
         self.World.global_effects["bastion"] = (self.pos.toTuple(), 512, self.faction)
-        self.World.global_effects["repair"] = (self.pos.toTuple(), 512, 5)
+        self.World.global_effects["repair"] = (self.pos.toTuple(), 512, 30)
         if (debug):
             pygame.draw.circle(self.screen, (0, 150, 255), rect.center, 512, 2)
     
