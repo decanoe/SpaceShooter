@@ -94,6 +94,7 @@ class EnemyShip(Collider, runner.Object):
                     ))
         
         EnemyShip(self.screen, self.World)
+        self.World.score += 1
     
     def canCollide(self, collider: Collider) -> bool:
         if self.explosion_time != -1:

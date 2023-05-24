@@ -69,17 +69,22 @@ def Render_Text(string, color, where):
 
 WORLD: runner.World = runner.World()
 ship: Ship = loader.loadPlayerShip(SAVE_SLOT, screen, WORLD)
-Station(screen, WORLD, Vector(1024, 0))
-for i in range(5):
+Station(screen, WORLD, Vector(0, 0))
+for i in range(32):
     EnemyShip(screen, WORLD)
 for i in range(32):
-    Asteroid(screen, WORLD, Vector.AngleToVector(random.random() * math.pi * 2) * random.random() * 512)
+    Asteroid(screen, WORLD, Vector.AngleToVector(random.random() * math.pi * 2) * (random.random() + 1) * 512)
+
+WORLD.score = 0
 
 while process:
     deltaTime: float = clock.tick() / 1000.
     update()
     
-    text = WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
+    text = ""
+    if not(ship.exploded):
+        text = WORLD.UpdateAllPhysics(deltaTime, clearLagNeeded = (100 - clock.get_fps()) / 50)
+        
     start = time.perf_counter()
     WORLD.UpdateAllGraphics(debug = DEBUG_STATE)
     finish = time.perf_counter()
@@ -87,12 +92,16 @@ while process:
         Render_Text(text.split("\n")[i], (255,0,0), (0, i * 16 + 16))
     Render_Text(f"graphics : {round(finish-start, 3)}", (255,0,0), (0, 16 * 5))
 
+    if (ship.exploded):
+        Render_Text(f"SCORE : {WORLD.score}", (255,255,255), (width / 2 - 50, height / 2))
+
 
     if (DEBUG_STATE):
         Render_Text(str(int(clock.get_fps())) + "   " + str(int(ship.pos.x)) + "/" + str(int(ship.pos.y)), (255,0,0), (0,0))
 
     events = pygame.event.get()
-    ship.eventReactions(events, deltaTime)
+    if (ship.exploded):
+        ship.eventReactions(events, deltaTime)
 
     # Continuous key press
     keys_pressed = pygame.key.get_pressed()
