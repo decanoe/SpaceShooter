@@ -24,7 +24,7 @@ class Debris(Collider, runner.Object):
         self.clearLagData = True
 
         super().__init__(Vector(0, 1), pos)
-        self.mass = 0.25
+        self.mass = 2
         self.setVelocity(Vector.AngleToVector(random.random() * math.pi * 2) * self.mass * random.random() * 200)
         self.direction = Vector.AngleToVector(random.random() * math.pi * 2)
         self.angle_velocity = (random.random() - 0.5) * 2
@@ -43,7 +43,7 @@ class Debris(Collider, runner.Object):
         self.velocity /= self.mass
         self.mass = collider.mass
         self.velocity *= self.mass
-        self.angle_velocity *= 0.1
+        self.angle_velocity = max(-1, min(1, self.angle_velocity))
         super().onCollide(collider, point, normal)
 
     def blitImage(self, image: pygame.Surface):
