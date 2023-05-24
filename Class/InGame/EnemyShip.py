@@ -241,10 +241,13 @@ class EnemyShip(Collider, runner.Object):
             else:
                 minDist = self.World.global_effects["bastion"][1] + 32
                 coord = Vector.TupleToPos(self.World.global_effects["bastion"][0])
-                if Vector.sqrDistance(self.pos, coord) < minDist * minDist:
+                if Vector.sqrDistance(self.World.center_object.pos, coord) > minDist * minDist:
+                    if Vector.sqrDistance(self.pos, coord) < minDist * minDist:
+                        self.fleeCoords(coord, deltaTime)
+                    else:
+                        self.aimPlayer(deltaTime)
+                elif Vector.sqrDistance(self.pos, coord) < minDist * minDist * 2:
                     self.fleeCoords(coord, deltaTime)
-                elif Vector.sqrDistance(self.World.center_object.pos, coord) > minDist * minDist:
-                    self.aimPlayer(deltaTime)
 
 
         return True

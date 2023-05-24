@@ -122,14 +122,14 @@ class Ship(Collider, runner.Object):
         if (type(collider).__name__ == "Projectile"):
             self.lastWallHit = t
             self.damageSprite(inSpritePoint, collider.explodeStrength)
-            if (not(self.exploded) and self.mask.count() <= 128):
+            if (not(self.exploded) and self.mask.count() <= 512):
                 self.explode()
                 self.exploded = True
         else:
             super().onCollide(collider, point, normal)
             collisionStrength = (collider.last_frame_velocity * collider.mass - self.last_frame_velocity * self.mass).magnitude() / 200
             self.damageSprite(inSpritePoint, collisionStrength)
-            if (not(self.exploded) and self.mask.count() <= 128):
+            if (not(self.exploded) and self.mask.count() <= 512):
                 self.explode()
                 self.exploded = True
     
