@@ -121,3 +121,7 @@ class Vector:
         '''return the vector with positive y as newUp'''
         newRight = newUp.normal()
         return Vector(self.x * newRight.x + self.y * newRight.y, self.x * newUp.x + self.y * newUp.y)
+    
+    def clamp(self, maxX = 1, maxY = 1, minX = -1, minY = -1) -> Vector:
+        '''return the vector with x between maxX and minX and y between maxY and minY'''
+        return Vector(max(minX, min(maxX, self.x)), max(minY, min(maxY, self.y)))

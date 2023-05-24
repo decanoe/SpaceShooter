@@ -20,6 +20,8 @@ class Ship(Collider, runner.Object):
     sprite: pygame.Surface = None
     damage_Effects: pygame.Surface = None
     parts: dict
+
+    thrust_direction: Vector = Vector(0, 0)
     exploded: bool = False
 
     # =============================================
@@ -58,19 +60,23 @@ class Ship(Collider, runner.Object):
         self.gun.fireCooldown = 0
         self.exploded = False
 
-    def propulse(self, deltaTime, force: float = 5, direction: Vector = None):
+    def propulse(self, deltaTime):
         if (self.timeSinceWallHit() >= COLLISION_DISABLE_TIME):
-            if (direction == None):
-                direction = self.direction
-            self.velocity += direction * force * (1 + self.mass) * deltaTime * 45
+            direction = self.thrust_direction.changeBase(self.direction)
+            counter = self.velocity.changeBase(self.direction) / 1024 * -1
+            if abs(counter.x) > abs(direction.x):
+                direction.x = counter.x * 1024
+            if abs(counter.y) > abs(direction.y):
+                direction.y = counter.y * 1024
+            direction = direction.clamp()
+
+            self.velocity += self.direction * max(0, direction.y) * self.mass * deltaTime * 512
+            self.velocity += self.direction * min(0, direction.y) * self.mass * deltaTime * 128
+            self.velocity += self.direction.normal() * direction.x * self.mass * deltaTime * 200
             
-            alignedDirection = direction.changeBase(self.direction)
-            axes: list[Vector] = [
-                self.direction * alignedDirection.y,
-                self.direction.normal() * alignedDirection.x
-            ]
-            for ax in axes:
-                pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + ax * 50).toTuple())
+            pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction.normal() * direction.x * -64).toTuple())
+            pygame.draw.line(self.screen, (255, 150, 150), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction * direction.y * -64).toTuple())
+            pygame.draw.line(self.screen, (0, 255, 0), self.World.centerPositionTo(self.pos).toTuple(), self.World.centerPositionTo(self.pos + self.direction * counter.y * -64).toTuple())
 
     def eventReactions(self, events: list[pygame.event.Event], deltaTime: float):
         self.gun.reload(deltaTime)
@@ -89,19 +95,20 @@ class Ship(Collider, runner.Object):
 
         if keys_pressed[pygame.K_r]:
             self.repair(50, deltaTime)
-
-        if pygame.mouse.get_pressed()[0]:
-            self.propulse(deltaTime)
         if pygame.mouse.get_pressed()[2]:
             self.gun.fire(self, spread=0, focal=256 + Vector.distance(Vector.TupleToPos(pygame.mouse.get_pos()), self.World.centerPositionTo(self.pos)))
+
+        self.thrust_direction *= 0
+        if pygame.mouse.get_pressed()[0]:
+            self.thrust_direction += self.direction
         if keys_pressed[pygame.K_z] or keys_pressed[pygame.K_UP]:
-            self.propulse(deltaTime, direction = Vector(0, -1))
+            self.thrust_direction.y -= 1
         if keys_pressed[pygame.K_s] or keys_pressed[pygame.K_DOWN]:
-            self.propulse(deltaTime, direction = Vector(0, 1))
-        if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]:
-            self.propulse(deltaTime, direction = Vector(1, 0))
-        if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_q]:
-            self.propulse(deltaTime, direction = Vector(-1, 0))
+            self.thrust_direction.y += 1
+        if keys_pressed[pygame.K_d] or keys_pressed[pygame.K_RIGHT]:
+            self.thrust_direction.x += 1
+        if keys_pressed[pygame.K_q] or keys_pressed[pygame.K_LEFT]:
+            self.thrust_direction.x -= 1
     def onCollide(self, collider: Collider, point: Vector, normal: Vector):
         t = self.lastWallHit
 
@@ -223,8 +230,7 @@ class Ship(Collider, runner.Object):
         rotatedImage: pygame.Surface = pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1))))
         self.mask = pygame.mask.from_surface(rotatedImage)
     def updatePhysics(self, deltaTime: float) -> bool:
-        self.velocity /= 1 + deltaTime * 0.75
-        
+        self.propulse(deltaTime)
         Collider.updatePhysics(self, deltaTime)
         self.updateMask()
         
