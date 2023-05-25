@@ -191,7 +191,11 @@ class EnemyShip(Collider, runner.Object):
             self.debug_target_pos = target_pos
 
             angle = self.direction.getAngle(target_pos - self.pos)
-            self.angle_velocity = max(min(angle * 50, math.pi), -math.pi)
+            self.angle_velocity = angle
+            if self.angle_velocity > deltaTime:
+                self.angle_velocity = 7.5
+            elif self.angle_velocity < -deltaTime:
+                self.angle_velocity = -7.5
         
             if (timeToReach < 3 and abs(angle) < .025):
                 self.gun.fire(self, focal=Vector.distance(self.pos, target_pos))

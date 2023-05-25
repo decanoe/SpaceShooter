@@ -5,7 +5,7 @@ import pygame, math, time
 
 SPRITE_LIB = pygame.image.load("./Sprites/Ship - parts.png").convert_alpha()
 EXPLOSION_LIB = pygame.image.load("./Sprites/explosions.png").convert_alpha()
-DEBRIS_LIFE: int = 25
+DEBRIS_LIFE: int = 60
 REGION_SIZE: int = 256
 LOAD_RADIUS: int = 6
 
