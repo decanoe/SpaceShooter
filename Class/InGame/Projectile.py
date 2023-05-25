@@ -27,6 +27,7 @@ class Projectile(Collider, runner.Object):
             self.faction = parentCollider.faction
         self.screen = screen
 
+        self.speed = speed
         self.explodeStrength = strength
         self.sprites = sprites
         self.animation_length = animation_length
@@ -72,6 +73,8 @@ class Projectile(Collider, runner.Object):
         image = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
         self.mask = pygame.mask.from_surface(image)
     def updatePhysics(self, deltaTime: float) -> bool:
+        self.velocity = Vector.Lerp(self.velocity, self.direction * self.speed * self.mass * 1000, deltaTime / 4)
+
         super().updatePhysics(deltaTime)
         if (self.alive != 1):
             self.alive -= deltaTime * 2

@@ -125,3 +125,7 @@ class Vector:
     def clamp(self, maxX = 1, maxY = 1, minX = -1, minY = -1) -> Vector:
         '''return the vector with x between maxX and minX and y between maxY and minY'''
         return Vector(max(minX, min(maxX, self.x)), max(minY, min(maxY, self.y)))
+    
+    def Lerp(v1: Vector, v2: Vector, value: float) -> Vector:
+        '''return the interpolation of v1 and v2 with value'''
+        return v1 + (v2 - v1) * value
