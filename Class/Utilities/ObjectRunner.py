@@ -1,7 +1,6 @@
 from Class.Utilities.Collider import Collider
 from Class.Utilities.Vector import Vector
-import pygame, math, time
-
+import pygame, math, time, random
 
 SPRITE_LIB = pygame.image.load("./Sprites/Ship - parts.png").convert_alpha()
 EXPLOSION_LIB = pygame.image.load("./Sprites/explosions.png").convert_alpha()
@@ -29,9 +28,13 @@ class World:
     center_object: Object = None
     game_objects: dict[tuple[int, int], list[Object]] = {}
     global_effects: dict[str, bool|float|tuple[int, int]] = {}
+    stars: list[tuple[int, int, float]]
+    screenSize: tuple[int, int]
 
-    def __init__(self):
-        pass
+
+    def __init__(self, screenSize: tuple[int, int]):
+        self.screenSize = screenSize
+        self.stars = [(round(random.random() * screenSize[0]), round(random.random() * screenSize[1]), 1 - random.random() * random.random()) for i in range(128)]
     
     def centerPositionTo(self, point: Vector):
         if (self.center_object == None):
@@ -160,7 +163,35 @@ class World:
         finish2 = time.perf_counter()
 
         return f"collisions : {round(middle-start, 3)}\nphysics : {round(finish1-middle, 3)}\ngarbage : {round(finish2-finish1, 3)}"
-    def UpdateAllGraphics(self, debug = False):
+    def UpdateAllGraphics(self, screen: pygame.Surface, debug = False):
+
+        screen.fill((0, 0, 0))
+
+        for i in range(len(self.stars)):
+            x: int = int(self.stars[i][0] - self.center_object.pos.x * self.stars[i][2])
+            x -= math.floor(x / self.screenSize[0]) * self.screenSize[0]
+            y: int = int(self.stars[i][1] - self.center_object.pos.y * self.stars[i][2])
+            y -= math.floor(y / self.screenSize[1]) * self.screenSize[1]
+
+            pygame.draw.circle(screen, (200 * (1 - self.stars[i][2]*self.stars[i][2]*self.stars[i][2]), 55 + 150 * self.stars[i][2], 55 + 150 * self.stars[i][2] * self.stars[i][2]), (x, y), 1)
+        
+        if (debug):
+            region = self.getRegion(self.center_object.pos)
+            for x_ in range(-LOAD_RADIUS // 2, LOAD_RADIUS // 2 + 1):
+                for y in range(-LOAD_RADIUS, LOAD_RADIUS + 1):
+                    x = x_ * 2 + (y - region[1] + region[0])%2
+
+                    color = (0, 255, 255)
+                    if abs(x) == LOAD_RADIUS or abs(y) == LOAD_RADIUS:
+                        color = (0, 0, 255)
+
+                    pos = Vector(x + region[0] - 0.5, y + region[1] - 0.5) * REGION_SIZE
+                    pygame.draw.rect(
+                        screen,
+                        color,
+                        pygame.Rect(self.centerPositionTo(pos).toTuple(), (REGION_SIZE, REGION_SIZE)),
+                        1)
+        
         centerRegion = self.getRegion(self.center_object.pos)
         
         for region in [(centerRegion[0] + x, centerRegion[1] + y) for x in range(-3, 4) for y in range(-3, 4)]:
