@@ -62,7 +62,7 @@ class Ship(Collider, runner.Object):
 
     def propulse(self, deltaTime):
         if (self.timeSinceWallHit() >= COLLISION_DISABLE_TIME):
-            direction = self.thrust_direction.changeBase(self.direction)
+            direction = self.thrust_direction.changeBase(self.direction).clamp()
             counter = self.velocity.changeBase(self.direction) / 1024 * -1
             if abs(counter.x) > abs(direction.x):
                 direction.x = counter.x * 1024
@@ -242,7 +242,11 @@ class Ship(Collider, runner.Object):
             mouse_pos = Vector.TupleToPos(pygame.mouse.get_pos())
             mouse_pos -= Vector.TupleToPos(self.screen.get_rect().size) / 2
             angle = self.direction.getAngle(mouse_pos)
-            self.angle_velocity = angle * 5
+            self.angle_velocity = angle
+            if self.angle_velocity > deltaTime:
+                self.angle_velocity = 7.5
+            elif self.angle_velocity < -deltaTime:
+                self.angle_velocity = -7.5
 
         if self.World.global_effects.get("repair", None):
             area = self.World.global_effects["repair"][1]
