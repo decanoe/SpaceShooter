@@ -10,7 +10,6 @@ REGION_SIZE: int = 256
 LOAD_RADIUS: int = 6
 
 class Object:
-    clearLagData: bool = False
     pos: Vector
     screen: pygame.Surface
 
@@ -122,7 +121,7 @@ class World:
                 self.UpdateAllCollisionArround(c1, region1)
 
 
-    def UpdateAllPhysics(self, deltaTime: float, clearLagNeeded: float = 0):
+    def UpdateAllPhysics(self, deltaTime: float):
         start = time.perf_counter()
         self.UpdateAllCollision()
         middle = time.perf_counter()
@@ -139,9 +138,6 @@ class World:
             while i < len(self.game_objects[region]):
                 obj = self.game_objects[region][i]
 
-                if obj.clearLagData and clearLagNeeded:
-                    obj.alive *= (1 - clearLagNeeded * deltaTime)
-                
                 if not(obj.updatePhysics(deltaTime)):
                     self.game_objects[region].pop(i)
                     del(obj)

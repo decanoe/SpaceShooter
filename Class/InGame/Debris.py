@@ -13,6 +13,7 @@ class Debris(Collider, runner.Object):
 
     alive: float = 0
     sprite: pygame.Surface = None
+    base_sprite: pygame.Surface = None
     World: runner.World
 
     # =============================================
@@ -21,7 +22,6 @@ class Debris(Collider, runner.Object):
         self.alive = runner.DEBRIS_LIFE
         
         self.screen = screen
-        self.clearLagData = True
 
         super().__init__(Vector(0, 1), pos)
         self.mass = 2
@@ -30,8 +30,16 @@ class Debris(Collider, runner.Object):
         self.angle_velocity = (random.random() - 0.5) * 2
         self.pos += self.velocity / 10
 
-        self.sprite = pygame.transform.scale_by(img, 0.75)
-        self.mask = pygame.mask.from_surface(self.sprite)
+        mask = pygame.mask.from_surface(img)
+
+        if len(mask.get_bounding_rects()) == 0:
+            self.alive = 0
+            self.base_sprite = pygame.transform.scale_by(img, 0.75)
+            self.mask = pygame.mask.from_surface(self.base_sprite)
+        else:
+            self.base_sprite = pygame.transform.scale_by(img.subsurface(mask.get_bounding_rects()[0]), 0.75)
+            self.mask = pygame.mask.from_surface(self.base_sprite)
+        self.sprite = self.base_sprite
         
         World.AddObject(self)
         self.World = World
@@ -40,32 +48,23 @@ class Debris(Collider, runner.Object):
         if (type(collider) == Debris or type(collider) == Projectile): return False
         return super().canCollide(collider)
     def onCollide(self, collider: Collider, point: Vector, normal: Vector):
-        self.velocity /= self.mass
-        self.mass = collider.mass
-        self.velocity *= self.mass
-        self.angle_velocity = max(-1, min(1, self.angle_velocity))
+        self.angle_velocity = max(-.5, min(.5, self.angle_velocity))
         super().onCollide(collider, point, normal)
 
-    def blitImage(self, image: pygame.Surface):
-        rotatedImage: pygame.Surface = pygame.transform.rotate(image, math.degrees(self.direction.getAngle(Vector(0, -1))))
-        rotatedImage.set_alpha(int(255 * min(1, self.alive / 10)))
-        rect: pygame.Rect = rotatedImage.get_rect(center = self.World.centerPositionTo(self.pos).toTuple())
-        self.screen.blit(rotatedImage, rect)
     def updateMask(self):
         self.mask = pygame.mask.from_surface(
             pygame.transform.rotate(self.sprite, math.degrees(self.direction.getAngle(Vector(0, -1)))))
     def update(self, debug = False):
-        self.blitImage(self.sprite)
+        self.sprite.set_alpha(int(255 * min(1, self.alive / 10)))
+        self.screen.blit(self.sprite, self.sprite.get_rect(center = self.World.centerPositionTo(self.pos).toTuple()))
     def updatePhysics(self, deltaTime: float) -> bool:
-        a = self.angle_velocity
-
-        # if (self.velocity.magnitude() > self.mass * 40):
-        #     self.velocity = self.velocity.normalize() * self.mass * 40
-
         super().updatePhysics(deltaTime)
-        self.angle_velocity = a
 
-        self.updateMask()
+        if abs(self.angle_velocity) < 0.01:
+            self.angle_velocity = 0
+        else:
+            self.sprite = pygame.transform.rotate(self.base_sprite, math.degrees(self.direction.getAngle(Vector(0, -1))))
+            self.updateMask()
 
         self.velocity /= 1 + deltaTime / 2
         self.alive -= deltaTime
