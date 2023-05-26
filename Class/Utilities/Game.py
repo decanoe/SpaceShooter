@@ -3,8 +3,9 @@ from Class.Utilities.Vector import Vector
 from Class.Utilities.ObjectRunner import World
 import Functions.Loader as loader
 
-from Class.UI.Overlay import Overlay
-from Class.UI.PauseOverlay import PauseOverlay
+from Class.UI.Interface.Overlay import Overlay
+from Class.UI.Interface.PauseOverlay import PauseOverlay
+from Class.UI.Interface.ShopUI import ShopUI
 
 from Class.InGame.Ship import Ship
 from Class.InGame.EnemyShip import EnemyShip
@@ -57,7 +58,7 @@ class Game:
             if self.overlayList[0].pauseGame:
                 paused = True
             
-            if self.overlayList[0].eventReactions(events):
+            if self.overlayList[0].handleEvents(events, deltaTime):
                 self.overlayList[0].draw()
                 i += 1
             else:
@@ -91,6 +92,8 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE and not(paused):
                     self.overlayList.append(PauseOverlay(self.screen))
+                if event.key == pygame.K_KP_7 and not(paused):
+                    self.overlayList.append(ShopUI(self.screen))
                 if event.key == pygame.K_s:
                     if keys_pressed[pygame.K_LCTRL]:
                         loader.savePlayerShip(SAVE_SLOT, self.ship)
